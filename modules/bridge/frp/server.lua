@@ -7,6 +7,10 @@ cAPI = Tunnel.getInterface("API")
 local Inventory = require 'modules.inventory.server'
 local Items = require 'modules.items.server'
 
+AddEventHandler('API:ReleaseCharacter', function(playerId)
+	server.playerDropped(playerId)
+end)
+
 AddEventHandler('API:UserDropped', server.playerDropped)
 
 local function setupPlayer(User, charId)
@@ -19,6 +23,9 @@ local function setupPlayer(User, charId)
 	PlayerData.slots = Player.Inventory.slots
 	PlayerData.weight = Player.Inventory.weight
 	PlayerData.identifier = charId or Player.id
+
+	shared.playerslots = Player.Inventory.slots
+	shared.playerweight = Player.Inventory.weight
 
 	PlayerData.name = ('%s %s'):format(Player.firstName, Player.lastName)
 	server.setPlayerInventory(PlayerData)
