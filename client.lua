@@ -237,10 +237,12 @@ function client.openInventory(inv, data)
 
 		if left then
 			if not cache.vehicle then
-				if inv == 'player' then
-					Utils.PlayAnim(0, 'mp_common', 'givetake1_a', 8.0, 1.0, 2000, 50, 0.0, 0, 0, 0)
-				elseif inv ~= 'trunk' then
-					Utils.PlayAnim(0, 'pickup_object', 'putdown_low', 5.0, 1.5, 1000, 48, 0.0, 0, 0, 0)
+				if IS_GTAV then
+					if inv == 'player' then
+						Utils.PlayAnim(0, 'mp_common', 'givetake1_a', 8.0, 1.0, 2000, 50, 0.0, 0, 0, 0)
+					elseif inv ~= 'trunk' then
+						Utils.PlayAnim(0, 'pickup_object', 'putdown_low', 5.0, 1.5, 1000, 48, 0.0, 0, 0, 0)
+					end
 				end
 			end
 
@@ -251,7 +253,9 @@ function client.openInventory(inv, data)
 			SetNuiFocusKeepInput(true)
 			closeTrunk()
 
-			if client.screenblur then TriggerScreenblurFadeIn(0) end
+			if IS_GTAV then
+				if client.screenblur then TriggerScreenblurFadeIn(0) end
+			end
 
 			currentInventory = right or defaultInventory
 			left.items = PlayerData.inventory
@@ -316,7 +320,9 @@ RegisterNetEvent('ox_inventory:forceOpenInventory', function(left, right)
 	SetNuiFocusKeepInput(true)
 	closeTrunk()
 
-	if client.screenblur then TriggerScreenblurFadeIn(0) end
+	if IS_GTAV then
+		if client.screenblur then TriggerScreenblurFadeIn(0) end
+	end
 
 	currentInventory = right or defaultInventory
 	currentInventory.ignoreSecurityChecks = true
@@ -719,30 +725,88 @@ local function registerCommands()
 		end
 	end
 
+	local function tryOpenInventory()
+		if invOpen then
+			return client.closeInventory()
+		end
+
+		if cache.vehicle then
+			return openGlovebox(cache.vehicle)
+		end
+
+		local closest = lib.points.getClosestPoint()
+
+		if closest and closest.currentDistance < 1.2 and (not closest.instance or closest.instance == currentInstance) then
+			if closest.inv == 'crafting' then
+				return client.openInventory('crafting', { id = closest.id, index = closest.index })
+			elseif closest.inv ~= 'license' and closest.inv ~= 'policeevidence' then
+				return client.openInventory(closest.inv or 'drop', { id = closest.invId, type = closest.type })
+			end
+		end
+
+		return client.openInventory()
+	end
+
+	local function tryOpenSecondaryInventory(self)
+		if primary:getCurrentKey() == self:getCurrentKey() then
+			return warn(("secondary inventory keybind '%s' disabled (keybind cannot match primary inventory keybind)"):format(self:getCurrentKey()))
+		end
+
+		if invOpen then
+			return client.closeInventory()
+		end
+
+		if invBusy or not canOpenInventory() then
+			return lib.notify({ id = 'inventory_player_access', type = 'error', description = locale('inventory_player_access') })
+		end
+
+		if StashTarget then
+			return client.openInventory('stash', StashTarget)
+		end
+
+		if cache.vehicle then
+			return openGlovebox(cache.vehicle)
+		end
+
+		local entity, entityType = Utils.Raycast(2|16)
+
+		if not entity then return end
+
+		if not shared.target and entityType == 3 then
+			local model = GetEntityModel(entity)
+
+			if Inventory.Dumpsters[model] then
+				return Inventory.OpenDumpster(entity)
+			end
+		end
+
+		if entityType ~= 2 then return end
+
+		Inventory.OpenTrunk(entity)
+	end
+
+	local function playerReload()
+		if not currentWeapon or not canUseItem(true) then return end
+
+		if currentWeapon.ammo then
+			if currentWeapon.metadata.durability > 0 then
+				local slotId = Inventory.GetSlotIdWithItem(currentWeapon.ammo, { type = currentWeapon.metadata.specialAmmo }, false)
+
+				if slotId then
+					useSlot(slotId)
+				end
+			else
+				lib.notify({ id = 'no_durability', type = 'error', description = locale('no_durability', currentWeapon.label) })
+			end
+		end
+	end
+
 	local primary = lib.addKeybind({
 		name = 'inv',
 		description = locale('open_player_inventory'),
 		defaultKey = client.keys[1],
 		onPressed = function()
-			if invOpen then
-				return client.closeInventory()
-			end
-
-			if cache.vehicle then
-				return openGlovebox(cache.vehicle)
-			end
-
-			local closest = lib.points.getClosestPoint()
-
-			if closest and closest.currentDistance < 1.2 and (not closest.instance or closest.instance == currentInstance) then
-				if closest.inv == 'crafting' then
-					return client.openInventory('crafting', { id = closest.id, index = closest.index })
-				elseif closest.inv ~= 'license' and closest.inv ~= 'policeevidence' then
-					return client.openInventory(closest.inv or 'drop', { id = closest.invId, type = closest.type })
-				end
-			end
-
-			return client.openInventory()
+			tryOpenInventory()
 		end
 	})
 
@@ -751,41 +815,7 @@ local function registerCommands()
 		description = locale('open_secondary_inventory'),
 		defaultKey = client.keys[2],
 		onPressed = function(self)
-            if primary:getCurrentKey() == self:getCurrentKey() then
-                return warn(("secondary inventory keybind '%s' disabled (keybind cannot match primary inventory keybind)"):format(self:getCurrentKey()))
-            end
-
-			if invOpen then
-				return client.closeInventory()
-			end
-
-			if invBusy or not canOpenInventory() then
-				return lib.notify({ id = 'inventory_player_access', type = 'error', description = locale('inventory_player_access') })
-			end
-
-			if StashTarget then
-				return client.openInventory('stash', StashTarget)
-			end
-
-			if cache.vehicle then
-				return openGlovebox(cache.vehicle)
-			end
-
-			local entity, entityType = Utils.Raycast(2|16)
-
-			if not entity then return end
-
-			if not shared.target and entityType == 3 then
-				local model = GetEntityModel(entity)
-
-				if Inventory.Dumpsters[model] then
-					return Inventory.OpenDumpster(entity)
-				end
-			end
-
-			if entityType ~= 2 then return end
-
-			Inventory.OpenTrunk(entity)
+            tryOpenSecondaryInventory(self)
 		end
 	})
 
@@ -794,19 +824,7 @@ local function registerCommands()
 		description = locale('reload_weapon'),
 		defaultKey = 'r',
 		onPressed = function(self)
-			if not currentWeapon or not canUseItem(true) then return end
-
-			if currentWeapon.ammo then
-				if currentWeapon.metadata.durability > 0 then
-					local slotId = Inventory.GetSlotIdWithItem(currentWeapon.ammo, { type = currentWeapon.metadata.specialAmmo }, false)
-
-					if slotId then
-						useSlot(slotId)
-					end
-				else
-					lib.notify({ id = 'no_durability', type = 'error', description = locale('no_durability', currentWeapon.label) })
-				end
-			end
+			playerReload()
 		end
 	})
 
@@ -832,6 +850,103 @@ local function registerCommands()
 		})
 	end
 
+
+	if IS_RDR3 then
+		local function useHotKeyByControl(key)
+			if not IsEntityDead(PlayerPedId()) and not IsPauseMenuActive() then
+				if not invOpen then
+					CreateThread(function()
+						--[[ useSlot is thread-blocking af. ]]
+						useSlot(key)
+					end)
+				end		
+			end
+		end	
+
+		Citizen.CreateThread(function()
+
+			local HOTKEY_CONTROL_MAPPING =
+			{
+				{
+					1, --[[ Hotkey ]]
+					{
+						`INPUT_SELECT_QUICKSELECT_SIDEARMS_LEFT`, --[[ Botão padrão ]]
+						`INPUT_EMOTE_DANCE`, --[[ Botão usado para quando o menu de ação está aberto ]]
+					},
+				},
+				{
+					2,
+					{
+						`INPUT_SELECT_QUICKSELECT_DUALWIELD`,
+						`INPUT_EMOTE_GREET`,
+					},
+				},
+				{
+					3,
+					{
+						`INPUT_SELECT_QUICKSELECT_SIDEARMS_RIGHT`,
+						`INPUT_EMOTE_COMM`,
+					},
+				},
+				{
+					4,
+					{
+						`INPUT_SELECT_QUICKSELECT_UNARMED`,
+						`INPUT_EMOTE_TAUNT`,
+					},
+				},
+				{
+					5,
+					{
+						`INPUT_SELECT_QUICKSELECT_MELEE_NO_UNARMED`,
+					},
+				},
+			}
+
+			while true do
+				Citizen.Wait(0)
+		
+				if PlayerData then
+
+					for _, mapping in ipairs(HOTKEY_CONTROL_MAPPING) do
+						local controlHashes = mapping[2]
+
+						for _, controlHash in ipairs(controlHashes) do						
+							DisableControlAction(0, controlHash, true)
+							if IsDisabledControlJustPressed(0, controlHash) then
+								local hotkey = mapping[1]
+
+								useHotKeyByControl(hotkey)
+
+								goto skip_hotkey_processing
+							end
+						end
+					end
+
+					:: skip_hotkey_processing ::
+					
+					if IsDisabledControlJustPressed(0, `INPUT_OPEN_WHEEL_MENU`) then -- tab
+						if not client.weaponWheel and not IsPauseMenuActive() then
+							SendNUIMessage({ action = 'toggleHotbar' })
+						end
+					end
+
+					if IsControlJustReleased(0, `INPUT_QUICK_USE_ITEM`) then -- open inventory I
+						tryOpenInventory()
+					end
+
+					if IsControlJustReleased(0,  `INPUT_RELOAD`) then -- reload R
+						playerReload()
+					end
+
+					if IsControlJustReleased(0,  `INPUT_AIM_IN_AIR`) then -- open inventory U
+						tryOpenSecondaryInventory()
+					end
+				end
+			end
+		end)
+	end
+
 	registerCommands = nil
 end
 
@@ -844,7 +959,9 @@ function client.closeInventory(server)
 		invOpen = nil
 		SetNuiFocus(false, false)
 		SetNuiFocusKeepInput(false)
-		TriggerScreenblurFadeOut(0)
+		if IS_GTAV then
+			TriggerScreenblurFadeOut(0)
+		end
 		closeTrunk()
 		SendNUIMessage({ action = 'closeInventory' })
 		SetInterval(client.interval, 200)
@@ -1257,17 +1374,19 @@ RegisterNetEvent('ox_inventory:setPlayerInventory', function(currentDrops, inven
 		end
 	end
 
-	for id, data in pairs(lib.load('data.licenses')) do
-		lib.points.new({
-			coords = data.coords,
-			distance = 16,
-			inv = 'license',
-			type = data.name,
-			price = data.price,
-			invId = id,
-			nearby = nearbyLicense,
-			message = ('**%s**  \n%s'):format(locale('purchase_license', data.name), locale('interact_prompt', GetControlInstructionalButton(0, 38, true):sub(3)))
-		})
+	if IS_GTAV then
+		for id, data in pairs(lib.load('data.licenses')) do
+			lib.points.new({
+				coords = data.coords,
+				distance = 16,
+				inv = 'license',
+				type = data.name,
+				price = data.price,
+				invId = id,
+				nearby = nearbyLicense,
+				message = ('**%s**  \n%s'):format(locale('purchase_license', data.name), locale('interact_prompt', GetControlInstructionalButton(0, 38, true):sub(3)))
+			})
+		end
 	end
 
 	while not client.uiLoaded do Wait(50) end
@@ -1340,7 +1459,11 @@ RegisterNetEvent('ox_inventory:setPlayerInventory', function(currentDrops, inven
 
 		if EnableWeaponWheel then return end
 
-		local weaponHash = GetSelectedPedWeapon(playerPed)
+		local weaponHash
+
+		if IS_GTAV then
+			weaponHash = GetSelectedPedWeapon(playerPed)
+		end
 
 		if currentWeapon then
 			if weaponHash ~= currentWeapon.hash and currentWeapon.timer then
@@ -1380,7 +1503,9 @@ RegisterNetEvent('ox_inventory:setPlayerInventory', function(currentDrops, inven
 	local IsControlJustReleased = IsControlJustReleased
 
 	client.tick = SetInterval(function()
-		DisablePlayerVehicleRewards(playerId)
+		if IS_GTAV then
+			DisablePlayerVehicleRewards(playerId)
+		end
 
 		if invOpen then
 			DisableAllControlActions(0)
@@ -1404,9 +1529,11 @@ RegisterNetEvent('ox_inventory:setPlayerInventory', function(currentDrops, inven
 				DisablePlayerFiring(playerId, true)
 			end
 
-			if not EnableWeaponWheel then
-				HudWeaponWheelIgnoreSelection()
-				DisableControlAction(0, 37, true)
+			if IS_GTAV then
+				if not EnableWeaponWheel then
+					HudWeaponWheelIgnoreSelection()
+					DisableControlAction(0, 37, true)
+				end
 			end
 
 			if currentWeapon and currentWeapon.timer then
@@ -1481,9 +1608,13 @@ RegisterNetEvent('ox_inventory:setPlayerInventory', function(currentDrops, inven
 								Wait(0)
 							end
 
-							if GetSelectedPedWeapon(playerPed) == weapon.hash then Wait(700) end
+							if IS_GTAV then
 
-							while IsPedPlantingBomb(playerPed) do Wait(0) end
+								if GetSelectedPedWeapon(playerPed) == weapon.hash then Wait(700) end
+
+								while IsPedPlantingBomb(playerPed) do Wait(0) end
+
+							end
 
 							TriggerServerEvent('ox_inventory:updateWeapon', 'throw', nil, weapon.slot)
 

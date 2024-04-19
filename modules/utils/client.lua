@@ -107,8 +107,12 @@ function Utils.WeaponWheel(state)
 	if state == nil then state = EnableWeaponWheel end
 
 	EnableWeaponWheel = state
-	SetWeaponsNoAutoswap(not state)
-	SetWeaponsNoAutoreload(not state)
+
+	Citizen.InvokeNative(0x2A7B50E, not state) -- SetWeaponsNoAutoswap
+	Citizen.InvokeNative(0x311150E5, not state) -- SetWeaponsNoAutoreload
+
+	-- SetWeaponsNoAutoswap(not state)
+	-- SetWeaponsNoAutoreload(not state)
 
 	if client.suppresspickups then
 		-- CLEAR_PICKUP_REWARD_TYPE_SUPPRESSION | SUPPRESS_PICKUP_REWARD_TYPE
@@ -119,14 +123,14 @@ end
 exports('weaponWheel', Utils.WeaponWheel)
 
 function Utils.CreateBlip(settings, coords)
-	local blip = AddBlipForCoord(coords.x, coords.y, coords.z)
-	SetBlipSprite(blip, settings.id)
-	SetBlipDisplay(blip, 4)
-	SetBlipScale(blip, settings.scale)
-	SetBlipColour(blip, settings.colour)
-	SetBlipAsShortRange(blip, true)
-	BeginTextCommandSetBlipName(settings.name)
-	EndTextCommandSetBlipName(blip)
+	-- local blip = AddBlipForCoord(coords.x, coords.y, coords.z)
+	-- SetBlipSprite(blip, settings.id)
+	-- SetBlipDisplay(blip, 4)
+	-- SetBlipScale(blip, settings.scale)
+	-- SetBlipColour(blip, settings.colour)
+	-- SetBlipAsShortRange(blip, true)
+	-- BeginTextCommandSetBlipName(settings.name)
+	-- EndTextCommandSetBlipName(blip)
 
 	return blip
 end

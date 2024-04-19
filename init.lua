@@ -14,7 +14,7 @@ end
 
 shared = {
     resource = GetCurrentResourceName(),
-    framework = GetConvar('inventory:framework', 'esx'),
+    framework = GetConvar('inventory:framework', 'frp'),
     playerslots = GetConvarInt('inventory:slots', 50),
     playerweight = GetConvarInt('inventory:weight', 30000),
     target = GetConvarInt('inventory:target', 0) == 1,
@@ -36,6 +36,9 @@ do
 end
 
 if IsDuplicityVersion() then
+    IS_RDR3 = GetConvar('gamename') == 'rdr3'
+	IS_GTAV = not IS_RDR3
+
     server = {
         bulkstashsave = GetConvarInt('inventory:bulkstashsave', 1) == 1,
         loglevel = GetConvarInt('inventory:loglevel', 1),
@@ -71,6 +74,9 @@ if IsDuplicityVersion() then
         server.accounts[accounts[i]] = 0
     end
 else
+    IS_RDR3 = GetGameName() == 'redm'
+	IS_GTAV = not IS_RDR3
+
     PlayerData = {}
     client = {
         autoreload = GetConvarInt('inventory:autoreload', 0) == 1,
