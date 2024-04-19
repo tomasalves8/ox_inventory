@@ -76,8 +76,14 @@ function Weapon.Equip(item, data, noWeaponAnim)
 
 	SetCurrentPedWeapon(playerPed, data.hash, true)
 	SetPedCurrentWeaponVisible(playerPed, true, false, false, false)
-	-- SetWeaponsNoAutoswap(true)
-	Citizen.InvokeNative(0x2A7B50E, true) -- SetWeaponsNoAutoswap
+	
+	if IS_GTAV then
+		SetWeaponsNoAutoswap(true)
+	end
+
+	if IS_RDR3 then
+		Citizen.InvokeNative(0x2A7B50E, true) -- SetWeaponsNoAutoswap
+	end
 
 	SetPedAmmo(playerPed, data.hash, ammo)
 	SetTimeout(0, function() RefillAmmoInstantly(playerPed) end)

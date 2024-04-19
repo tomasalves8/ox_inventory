@@ -108,11 +108,15 @@ function Utils.WeaponWheel(state)
 
 	EnableWeaponWheel = state
 
-	Citizen.InvokeNative(0x2A7B50E, not state) -- SetWeaponsNoAutoswap
-	Citizen.InvokeNative(0x311150E5, not state) -- SetWeaponsNoAutoreload
+	if IS_RDR3 then
+		Citizen.InvokeNative(0x2A7B50E, not state) -- SetWeaponsNoAutoswap
+		Citizen.InvokeNative(0x311150E5, not state) -- SetWeaponsNoAutoreload
+	end
 
-	-- SetWeaponsNoAutoswap(not state)
-	-- SetWeaponsNoAutoreload(not state)
+	if IS_GTAV then
+		SetWeaponsNoAutoswap(not state)
+		SetWeaponsNoAutoreload(not state)
+	end
 
 	if client.suppresspickups then
 		-- CLEAR_PICKUP_REWARD_TYPE_SUPPRESSION | SUPPRESS_PICKUP_REWARD_TYPE
