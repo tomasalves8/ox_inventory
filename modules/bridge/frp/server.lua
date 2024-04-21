@@ -34,5 +34,5 @@ end
 AddEventHandler('API:OnUserSelectCharacter', setupPlayer)
 
 SetTimeout(500, function()
-	for _, Player in pairs(API.getUsers()) do setupPlayer(Player) end
+	for _, Player in pairs(API.GetUsers()) do setupPlayer(Player) end
 end)
