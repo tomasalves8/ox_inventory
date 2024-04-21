@@ -43,7 +43,7 @@ Citizen.CreateThreadNow(function()
     elseif shared.framework == 'frp' then
         playerTable = 'character_inventory'
         playerColumn = 'charId'
-        vehicleTable = 'horse'
+        vehicleTable = 'transport'
         vehicleColumn = 'id'
     end
 
