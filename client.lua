@@ -1910,6 +1910,24 @@ end)
 
 local swapActive = false
 
+local function swapWeaponHotbar(item, data)
+	if IS_RDR3 then
+		if string.find(string.lower(item.name), "weapon") then
+			if data.fromType == "player" then
+				if data.fromSlot > 0 and data.fromSlot < 6 then
+					local playerPed = PlayerPedId()
+					local weaponHash = GetHashKey(item.name)
+					local ammoHash = GetPedAmmoTypeFromWeapon(playerPed, weaponHash)
+					local weaponAmmo = GetAmmoInPedWeapon(playerPed, item.hash)
+
+					Citizen.InvokeNative(0xB6CFEC32E3742779, playerPed, ammoHash, weaponAmmo, GetHashKey('REMOVE_REASON_DROPPED'))  --_REMOVE_AMMO_FROM_PED_BY_TYPE
+					RemoveWeaponFromPed(playerPed, weaponHash)
+				end
+			end
+		end
+	end
+end
+
 ---Synchronise and validate all item movement between the NUI and server.
 RegisterNUICallback('swapItems', function(data, cb)
     if swapActive or not invOpen or invBusy or usingItem then return cb(false) end
@@ -1958,6 +1976,16 @@ RegisterNUICallback('swapItems', function(data, cb)
 	cb(success or false)
 
 	if success then
+		--[[ Remove weapon completly from player if remove from hotbar]]
+		if IS_RDR3 then
+			local itemSlot = response and response?.items[1].item.slot or data.fromSlot
+			local item = PlayerData.inventory[itemSlot or data.fromSlot] 
+
+			if item then
+				swapWeaponHotbar(item, data)
+			end
+		end
+
         if weaponSlot and currentWeapon then
             currentWeapon.slot = weaponSlot
         end
@@ -1973,6 +2001,7 @@ RegisterNUICallback('swapItems', function(data, cb)
 		end
 	end
 end)
+
 
 RegisterNUICallback('buyItem', function(data, cb)
 	---@type boolean, false | { [1]: number, [2]: SlotWithItem, [3]: SlotWithItem | false, [4]: number}, NotifyProps
