@@ -1,4 +1,4 @@
-local Tunnel = module("frp_core", "lib/Tunnel")
+local Tunnel = module("frp_lib", "lib/Tunnel")
 
 local Inventory = require 'modules.inventory.client'
 local Weapon = require 'modules.weapon.client'
