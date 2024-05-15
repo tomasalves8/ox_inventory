@@ -53,7 +53,7 @@ code {
 }
 
 ::-webkit-scrollbar {
-  width: 3px !important;
+  display: none;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -150,6 +150,7 @@ button:active {
   
   justify-content: center;
   align-items: center;
+  -webkit-scrollbar: 3px !important;
 }
 
 .inventory_background {
@@ -326,6 +327,7 @@ button:active {
   flex-direction: column;
   gap: calc($gridGap * 2);
 }
+
 .inventory-grid-header-wrapper {
   display: flex;
   flex-direction: row;
@@ -335,6 +337,10 @@ button:active {
   }
 }
 
+.active{
+  display:flex;
+}
+
 .inventory-grid-container {
   display: grid;
   height: $containerSize;
@@ -342,6 +348,11 @@ button:active {
   grid-auto-rows: $gridSize + 0.22vh;
   gap: $gridGap;
   overflow-y: scroll;
+}
+
+.inventory-grid-container::-webkit-scrollbar {
+  display: block; 
+  width: 3px;
 }
 
 // inventory slots
@@ -663,9 +674,5 @@ button:active {
 .transition-slide-up-exit-active {
   transform: translateY(200px);
   transition: all 200ms;
-}
-
-.active{
-  display:flex;
 }
 
