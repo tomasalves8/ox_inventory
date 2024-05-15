@@ -1995,7 +1995,9 @@ RegisterNUICallback('swapItems', function(data, cb)
 			data.coords = coords
 		end
 
-		data.coords = exports["persistent-items"]:getFromCoordsFromPlayer(coords)
+		if shared.persistent_items then
+			data.coords = exports["persistent-items"]:getFromCoordsFromPlayer(coords)
+		end
     end
 
 	if currentInstance then

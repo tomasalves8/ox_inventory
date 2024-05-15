@@ -1548,16 +1548,26 @@ local function dropItem(source, playerInventory, fromData, data)
 		playerInventory.weapon = nil
 	end
 
-	local dropId = generateInvId('drop')
-	local inventory = Inventory.Create(dropId, ('Drop %s'):format(dropId:gsub('%D', '')), 'drop', shared.playerslots, toData.weight, shared.playerweight, false, {[data.toSlot] = toData})
+	local dropId
+	local itemData = Items(toData.name)
+	
+	local prop = itemData?.prop or "p_satchel01x"
+	local itemLabel = itemData.label
 
-	if not inventory then return end
+	if shared.persistent_items then
+		exports["persistent-items"]:CreateItemsDropStack(itemLabel, toData.name, toData.count, toData.metadata, prop, data.coords, source)
+	else
+		dropId = generateInvId('drop')
+		local inventory = Inventory.Create(dropId, ('Drop %s'):format(dropId:gsub('%D', '')), 'drop', shared.playerslots, toData.weight, shared.playerweight, false, {[data.toSlot] = toData})
 
-	inventory.coords = data.coords
-	Inventory.Drops[dropId] = {coords = inventory.coords, instance = data.instance}
+		if not inventory then return end
+		inventory.coords = data.coords
+		Inventory.Drops[dropId] = {coords = inventory.coords, instance = data.instance}
+
+		TriggerClientEvent('ox_inventory:createDrop', -1, dropId, Inventory.Drops[dropId], playerInventory.open and source, slot)
+	end
+
 	playerInventory.changed = true
-
-	TriggerClientEvent('ox_inventory:createDrop', -1, dropId, Inventory.Drops[dropId], playerInventory.open and source, slot)
 
 	if server.loglevel > 0 then
 		lib.logger(playerInventory.owner, 'swapSlots', ('%sx %s transferred from "%s" to "%s"'):format(data.count, toData.name, playerInventory.label, dropId))
@@ -1575,6 +1585,7 @@ local function dropItem(source, playerInventory, fromData, data)
 		}
 	}
 end
+
 
 local activeSlots = {}
 
