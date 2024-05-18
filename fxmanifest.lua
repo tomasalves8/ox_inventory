@@ -17,7 +17,7 @@ dependencies {
 }
 
 shared_script '@ox_lib/init.lua'
-shared_script '@frp_lib/lib/utils.lua'
+shared_script '@frp_lib/library/linker.lua'
 
 ox_libs {
     'locale',
