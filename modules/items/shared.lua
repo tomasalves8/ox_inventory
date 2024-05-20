@@ -106,7 +106,7 @@ for type, data in pairs(lib.load(string.format('data.weapons_%s', IS_GTAV and "G
 	end
 end
 
-for k, v in pairs(lib.load('data.items')) do
+for k, v in pairs(lib.load(string.format('data.items_%s', IS_GTAV and "GTAV" or "RDR3"))) do
 	v.name = k
 	local success, response = pcall(newItem, v)
 
