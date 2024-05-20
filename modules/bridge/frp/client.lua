@@ -5,7 +5,7 @@ local Weapon = require 'modules.weapon.client'
 
 Tunnel.bindInterface("inventory", Inventory)
 
-RegisterNetEvent('FRP:onSessionStoppedPlaying', client.onLogout)
+RegisterNetEvent('FRP:onCharacterLogout', client.onLogout)
 
 ---@diagnostic disable-next-line: duplicate-set-field
 function client.setPlayerStatus(values)
