@@ -8,11 +8,11 @@ local Items = require 'modules.items.server'
 
 Proxy.addInterface("inventory", Inventory)
 
-AddEventHandler('API:ReleaseCharacter', function(playerId)
+AddEventHandler('FRP:ReleaseCharacter', function(playerId)
 	server.playerDropped(playerId)
 end)
 
-AddEventHandler('API:UserDropped', server.playerDropped)
+AddEventHandler('FRP:UserDropped', server.playerDropped)
 
 local function setupPlayer(User, charId)
 	local Player = User:GetCharacter()
@@ -32,7 +32,7 @@ local function setupPlayer(User, charId)
 	server.setPlayerInventory(PlayerData)
 end
 
-AddEventHandler('FRP:OnUserSelectCharacter', setupPlayer)
+AddEventHandler('FRP:onUserSelectCharacter', setupPlayer)
 
 SetTimeout(500, function()
 	for _, Player in pairs(API.GetUsers()) do setupPlayer(Player) end
