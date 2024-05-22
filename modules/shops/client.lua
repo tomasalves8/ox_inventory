@@ -4,13 +4,16 @@ local shopTypes = {}
 local shops = {}
 local createBlip = require 'modules.utils.client'.CreateBlip
 
+local prompt__Open
+
 for shopType, shopData in pairs(lib.load('data.shops') --[[@as table<string, OxShop>]]) do
 	local shop = {
 		name = shopData.name,
 		groups = shopData.groups or shopData.jobs,
 		blip = shopData.blip,
 		label = shopData.label,
-        icon = shopData.icon
+        icon = shopData.icon,
+		prompt = shopData.prompt,
 	}
 
 	if shared.target then
@@ -32,11 +35,27 @@ end
 ---@param point CPoint
 local function nearbyShop(point)
 	---@diagnostic disable-next-line: param-type-mismatch
-	DrawMarker(2, point.coords.x, point.coords.y, point.coords.z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.3, 0.2, 0.15, 30, 150, 30, 222, false, false, 0, true, false, false, false)
+	if IS_GTAV then
+		DrawMarker(2, point.coords.x, point.coords.y, point.coords.z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.3, 0.2, 0.15, 30, 150, 30, 222, false, false, 0, true, false, false, false)
+	end
+
+	if IS_RDR3 then
+		Citizen.InvokeNative(0x2A32FAA57B937173, 0x07DCE236, point.coords.x, point.coords.y, point.coords.z, 0,0,0,0,0,0,0.15, 0.15,1.0, 30, 150, 30, 222, 0, 0, 2, 0, 0, 0, 0)
+	end
+
+	if IS_RDR3 and point.prompt then
+		if promptHelper:hasPromptHoldModeCompleted(prompt__Open) then
+			client.openInventory('shop', { id = point.invId, type = point.type })
+		end
+
+		goto continue
+	end
 
 	if point.isClosest and point.currentDistance < 1.2 and IsControlJustReleased(0, 38) then
 		client.openInventory('shop', { id = point.invId, type = point.type })
 	end
+
+	::continue::
 end
 
 ---@param point CPoint
@@ -110,6 +129,24 @@ local function wipeShops()
 	end
 
 	table.wipe(shops)
+end
+
+local function createShopPrompt(point)
+	if point.prompt then
+		prompt__Open = PromptBuilder:new()
+			:setControl(`INPUT_ENTER`)
+			:setText(('Abrir %s'):format(point.label))
+			:setMode('Hold', 500)
+			:setPoint(vector3(point.coords.x, point.coords.y, point.coords.z))
+			:setRadius(4.0)
+			:build()
+	end
+end
+
+local function deleteShopPrompt(point)
+	if prompt__Open then
+		prompt__Open = PromptDelete(prompt__Open)
+	end
 end
 
 local function refreshShops()
@@ -201,6 +238,10 @@ local function refreshShops()
 					inv = 'shop',
 					invId = i,
 					type = type,
+					onEnter = createShopPrompt,
+					onExit = deleteShopPrompt,
+					label = shop.name,
+					prompt = shop.prompt,
 					nearby = nearbyShop,
 					blip = blip and createBlip(blip, coords)
 				})

@@ -48,7 +48,18 @@ function server.setPlayerInventory(player, data)
 					local weight = Inventory.SlotWeight(item, v)
 					totalWeight = totalWeight + weight
 
-					inventory[v.slot] = {name = item.name, label = item.label, weight = weight, slot = v.slot, count = v.count, description = item.description, metadata = v.metadata, stack = item.stack, close = item.close}
+					inventory[v.slot] = {
+						name = item.name, 
+						label = item.label, 
+						weight = weight, 
+						slot = v.slot, 
+						count = v.count, 
+						description = item.description, 
+						metadata = v.metadata, 
+						stack = item.stack, 
+						close = item.close,
+						
+					}
 				end
 			end
 		end
@@ -467,8 +478,8 @@ lib.addCommand({'additem', 'giveitem'}, {
 	},
 	restricted = 'group.admin',
 }, function(source, args)
-	local item = Items(args.item)
 
+	local item = Items(args.item)
 	if item then
 		local inventory = Inventory(args.target) --[[@as OxInventory]]
 		local count = args.count or 1

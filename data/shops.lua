@@ -1,4 +1,15 @@
 return {
+	Gunsmith = {
+		name = 'Gunsmith',
+		locations = {
+			vector3(-740.83, -1273.08, 43.58)
+		},
+		inventory = {
+			{ name = "oil_gun", price = 10, metadata = { durability = 100 } }
+		},
+		prompt = true
+	},
+
 	General = {
 		name = 'Shop',
 		blip = {
