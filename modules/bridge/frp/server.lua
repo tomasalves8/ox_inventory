@@ -6,6 +6,7 @@ API = Proxy.getInterface("API")
 local Inventory = require 'modules.inventory.server'
 local Items = require 'modules.items.server'
 
+Tunnel.bindInterface("inventory", Inventory)
 Proxy.addInterface("inventory", Inventory)
 
 AddEventHandler('FRP:ReleaseCharacter', function(playerId)
