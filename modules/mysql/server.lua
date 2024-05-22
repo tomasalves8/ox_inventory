@@ -7,10 +7,10 @@ local Query = {
     UPSERT_STASH = 'INSERT INTO ox_inventory (data, owner, name) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE data = VALUES(data)',
     INSERT_STASH = 'INSERT INTO ox_inventory (owner, name) VALUES (?, ?)',
 
-    SELECT_TRUNK = 'SELECT plate, trunk FROM `{vehicle_table}` WHERE `{vehicle_column}` = ?',
+    SELECT_TRUNK = 'SELECT `{vehicle_column}`, trunk FROM `{vehicle_table}` WHERE `{vehicle_column}` = ?',
     UPDATE_TRUNK = 'UPDATE `{vehicle_table}` SET trunk = ? WHERE `{vehicle_column}` = ?',
 
-    SELECT_GLOVEBOX = 'SELECT plate, glovebox FROM `{vehicle_table}` WHERE `{vehicle_column}` = ?',
+    SELECT_GLOVEBOX = 'SELECT `{vehicle_column}`, glovebox FROM `{vehicle_table}` WHERE `{vehicle_column}` = ?',
     UPDATE_GLOVEBOX = 'UPDATE `{vehicle_table}` SET glovebox = ? WHERE `{vehicle_column}` = ?',
 
     UPDATE_PLAYER = 'UPDATE `{user_table}` SET items = ? WHERE `{user_column}` = ?',

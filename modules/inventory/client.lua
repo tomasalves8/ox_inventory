@@ -78,14 +78,12 @@ function Inventory.OpenTrunk(entity)
 		invId = string.format('trunk%s', plate)
 	end
 
-
 	if IS_RDR3 then
-
 		local vehicleUUID
 		if Entity(entity).state.wagonId then 
 			vehicleUUID = Entity(entity).state.wagonId
 		else
-			vehicleUUID = "temp:" .. netId
+			vehicleUUID = "trunktemp" .. netId
 		end
 
 		invId = vehicleUUID

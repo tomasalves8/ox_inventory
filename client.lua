@@ -193,6 +193,7 @@ function client.openInventory(inv, data)
 			end
 		end
 
+
 		if inv == 'shop' and invOpen == false then
 			if cache.vehicle then
 				return lib.notify({ id = 'cannot_perform', type = 'error', description = locale('cannot_perform') })
@@ -244,82 +245,84 @@ function client.openInventory(inv, data)
                     data = input[1]
                 end
 			end
-
 			left, right = lib.callback.await('ox_inventory:openInventory', false, inv, data)
 		end
 
-		if left then
-			if not cache.vehicle then
-				if IS_GTAV then
-					if inv == 'player' then
-						Utils.PlayAnim(0, 'mp_common', 'givetake1_a', 8.0, 1.0, 2000, 50, 0.0, 0, 0, 0)
-					elseif inv ~= 'trunk' then
-						Utils.PlayAnim(0, 'pickup_object', 'putdown_low', 5.0, 1.5, 1000, 48, 0.0, 0, 0, 0)
-					end
+		-- Stash does not exist
+		if not left then
+			if left == false then return false end
+	
+			if invOpen == false then
+				return lib.notify({ id = 'inventory_right_access', type = 'error', description = locale('inventory_right_access') })
+			end
+	
+			if invOpen then return client.closeInventory() end
+		end
+	
+		if not cache.vehicle then
+			if IS_GTAV then
+				if inv == 'player' then
+					Utils.PlayAnim(0, 'mp_common', 'givetake1_a', 8.0, 1.0, 2000, 50, 0.0, 0, 0, 0)
+				elseif inv ~= 'trunk' then
+					Utils.PlayAnim(0, 'pickup_object', 'putdown_low', 5.0, 1.5, 1000, 48, 0.0, 0, 0, 0)
 				end
 			end
+		end
 
-			plyState.invOpen = true
+		plyState.invOpen = true
 
-			SetInterval(client.interval, 100)
-			SetNuiFocus(true, true)
-			SetNuiFocusKeepInput(true)
-			closeTrunk()
+		SetInterval(client.interval, 100)
+		SetNuiFocus(true, true)
+		SetNuiFocusKeepInput(true)
+		closeTrunk()
 
-			if IS_GTAV then
-				if client.screenblur then TriggerScreenblurFadeIn(0) end
-			end
+		if IS_GTAV then
+			if client.screenblur then TriggerScreenblurFadeIn(0) end
+		end
 
-			currentInventory = right or defaultInventory
-			left.items = PlayerData.inventory
-			left.groups = PlayerData.groups
+		currentInventory = right or defaultInventory
+		left.items = PlayerData.inventory
+		left.groups = PlayerData.groups
 
-			SendNUIMessage({
-				action = 'setupInventory',
-				data = {
-					leftInventory = left,
-					rightInventory = currentInventory
-				}
-			})
+		SendNUIMessage({
+			action = 'setupInventory',
+			data = {
+				leftInventory = left,
+				rightInventory = currentInventory
+			}
+		})
 
-			if not currentInventory.coords and not inv == 'container' then
-				currentInventory.coords = GetEntityCoords(playerPed)
-			end
+		if not currentInventory.coords and not inv == 'container' then
+			currentInventory.coords = GetEntityCoords(playerPed)
+		end
 
-            if inv == 'trunk' then
-                SetTimeout(200, function()
-                    ---@todo animation for vans?
+		if inv == 'trunk' then
+			SetTimeout(200, function()
+				---@todo animation for vans?
 
-					if IS_GTAV then
-                    	Utils.PlayAnim(0, 'anim@heists@prison_heiststation@cop_reactions', 'cop_b_idle', 3.0, 3.0, -1, 49, 0.0, 0, 0, 0)
+				if IS_GTAV then
+					Utils.PlayAnim(0, 'anim@heists@prison_heiststation@cop_reactions', 'cop_b_idle', 3.0, 3.0, -1, 49, 0.0, 0, 0, 0)
 
-						local entity = data.entity or NetworkGetEntityFromNetworkId(data.netid)
-						currentInventory.entity = entity
-						currentInventory.door = data.door
+					local entity = data.entity or NetworkGetEntityFromNetworkId(data.netid)
+					currentInventory.entity = entity
+					currentInventory.door = data.door
 
-						if not currentInventory.door then
-							local vehicleHash = GetEntityModel(entity)
-							local vehicleClass = GetVehicleClass(entity)
-							currentInventory.door = vehicleClass == 12 and { 2, 3 } or Vehicles.Storage[vehicleHash] and 4 or 5
-						end
-
-						while currentInventory?.entity == entity and invOpen and DoesEntityExist(entity) and Inventory.CanAccessTrunk(entity) do
-							Wait(100)
-						end
+					if not currentInventory.door then
+						local vehicleHash = GetEntityModel(entity)
+						local vehicleClass = GetVehicleClass(entity)
+						currentInventory.door = vehicleClass == 12 and { 2, 3 } or Vehicles.Storage[vehicleHash] and 4 or 5
 					end
 
-                    if invOpen then client.closeInventory() end
-                end)
-            end
+					while currentInventory?.entity == entity and invOpen and DoesEntityExist(entity) and Inventory.CanAccessTrunk(entity) do
+						Wait(100)
+					end
+					if invOpen then client.closeInventory() end
+				end
 
-			-- Stash exists (useful for custom stashes)
-			return true
-		else
-			-- Stash does not exist
-			if left == false then return false end
-			if invOpen == false then lib.notify({ id = 'inventory_right_access', type = 'error', description = locale('inventory_right_access') }) end
-			if invOpen then client.closeInventory() end
+			end)
 		end
+
+		return true
 	else lib.notify({ id = 'inventory_player_access', type = 'error', description = locale('inventory_player_access') }) end
 end
 
@@ -861,8 +864,10 @@ local function registerCommands()
 	end
 
 	local function tryOpenSecondaryInventory(self)
-		if primary:GetCurrentKey() == self:GetCurrentKey() then
-			return warn(("secondary inventory keybind '%s' disabled (keybind cannot match primary inventory keybind)"):format(self:GetCurrentKey()))
+		if IS_GTAV then
+			if primary:GetCurrentKey() == self:GetCurrentKey() then
+				return warn(("secondary inventory keybind '%s' disabled (keybind cannot match primary inventory keybind)"):format(self:GetCurrentKey()))
+			end
 		end
 
 		if invOpen then
@@ -2128,10 +2133,10 @@ RegisterNUICallback('craftItem', function(data, cb)
 	end
 end)
 
-lib.callback.register('ox_inventory:GetVehicleData', function(netid)
+lib.callback.register('ox_inventory:getVehicleData', function(netid)
 	local entity = NetworkGetEntityFromNetworkId(netid)
 
 	if entity then
-		return GetEntityModel(entity), GetVehicleClass(entity)
+		return GetEntityModel(entity), IS_GTAV and GetVehicleClass(entity) or 'wagon'
 	end
 end)

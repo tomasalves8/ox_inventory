@@ -160,7 +160,13 @@ local function loadInventoryData(data, player)
 			end
 
 			local model, class = lib.callback.await('ox_inventory:getVehicleData', source, data.netid)
-			local storage = Vehicles[data.type].models[model] or Vehicles[data.type][class]
+			local storage
+			if IS_GTAV then
+				storage = Vehicles[data.type].models[model] or Vehicles[data.type][class]
+			end
+			if IS_RDR3 then
+				storage = Vehicles[data.type].models[model]
+			end
             local dbId
 
             if server.getOwnedVehicleId then
