@@ -119,6 +119,8 @@ const InventorySlot: React.ForwardRefRenderFunction<HTMLDivElement, SlotProps> =
 
   const refs = useMergeRefs([connectRef, ref]);
 
+  const isWeapon = item?.name?.search("weapon") != 0;
+
   return (
     <div
       ref={refs}
@@ -175,8 +177,8 @@ const InventorySlot: React.ForwardRefRenderFunction<HTMLDivElement, SlotProps> =
             </div>
           </div>
           <div>
-            {inventoryType !== 'shop' && item?.durability !== undefined && (
-              <WeightBar percent={item.durability} durability />
+            {inventoryType !== 'shop' && (item?.durability || item?.durability) !== undefined && (
+              <WeightBar percent={( isWeapon ? item.degradation : item.durability ) ?? 0 } durability />
             )}
             {inventoryType === 'shop' && item?.price !== undefined && (
               <>

@@ -62,9 +62,14 @@ const SlotTooltip: React.ForwardRefRenderFunction<
           )}
           {inventoryType !== 'crafting' ? (
             <>
-              {item.durability !== undefined && (
+              {!item.degradation ? item.durability !== undefined && (
                 <p>
                   {Locale.ui_durability}: {Math.trunc(item.durability)}
+                </p>
+              )
+              : item.degradation !== undefined && (
+                <p>
+                  {Locale.ui_durability}: {Math.trunc(item.degradation)}
                 </p>
               )}
               {item.metadata?.ammo !== undefined && (
