@@ -86,6 +86,37 @@ for type, data in pairs(lib.load(string.format('data.weapons_%s', IS_GTAV and "G
 			v.stack = v.throwable and true or false
 			v.durability = v.durability or 0.05
 			v.weapon = true
+
+			if v.type == 'WeaponGun' then
+				v.buttons =
+				{
+					{
+						label = locale('inspect_weapon'),
+						action = function(slot)
+							TriggerEvent('ox_inventory:weaponInspectUsed', PlayerData.inventory[slot])
+						end
+					},
+				}
+
+				if string.find(string.lower(v.name), "revolver") or string.find(string.lower(v.name), "pistol") then
+					v.buttons = 
+					{
+						v.buttons[1],
+						{
+							label = locale('left_holster'),
+							action = function(slot)
+								TriggerEvent('ox_inventory:ReplaceAttachPoint', PlayerData.inventory[slot], 2)
+							end
+						},
+						{
+							label = locale('right_holster'),
+							action = function(slot)
+								TriggerEvent('ox_inventory:ReplaceAttachPoint', PlayerData.inventory[slot], 3)
+							end
+						}
+					}
+				end
+			end
 		else
 			v.stack = true
 		end

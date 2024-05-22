@@ -276,7 +276,14 @@ function Items.Metadata(inv, item, metadata, count)
 
 	if item.weapon then
 		if type(metadata) ~= 'table' then metadata = {} end
-		if not metadata.durability then metadata.durability = 100 end
+
+		--- RDR3 Weapons are using degradation system
+		
+		-- print(" INV :: ", json.encode(item, {indent=true}))
+		if IS_GTAV then
+			if not metadata.durability then metadata.durability = 100 end
+		end
+
 		if not metadata.ammo and item.ammoname then metadata.ammo = 0 end
 		if not metadata.components then metadata.components = {} end
 
@@ -289,6 +296,8 @@ function Items.Metadata(inv, item, metadata, count)
 		if item.hash == `WEAPON_PETROLCAN` or item.hash == `WEAPON_HAZARDCAN` or item.hash == `WEAPON_FERTILIZERCAN` or item.hash == `WEAPON_FIREEXTINGUISHER` then
 			metadata.ammo = metadata.durability
 		end
+
+
 	else
 		local container = Items.containers[item.name]
 
@@ -366,6 +375,25 @@ function Items.CheckMetadata(metadata, item, name, ostime)
 	end
 
 	if item.weapon then
+
+		local degradation = metadata.degradation
+
+		if degradation == nil or degradation < 0 then
+			metadata.degradation = 0
+		end
+
+		if not metadata.soot then
+			metadata.soot = 0
+		end
+
+		if not metadata.dirt then
+			metadata.dirt = 0
+		end
+
+		if not metadata.damage then
+			metadata.damage = 0
+		end
+
 		if metadata.components then
 			if table.type(metadata.components) == 'array' then
 				for i = #metadata.components, 1, -1 do

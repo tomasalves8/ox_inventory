@@ -9,6 +9,13 @@ return {
 		}
 	},
 
+	['oil_gun'] = {
+		label = 'Óleo para arma',
+		metadata = {
+			durability = 100
+		}
+	},
+
 	['money'] = {
 		label = 'Money',
 	},

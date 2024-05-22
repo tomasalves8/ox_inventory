@@ -953,6 +953,37 @@ function Inventory.SetDurability(inv, slotId, durability)
 end
 exports('SetDurability', Inventory.SetDurability)
 
+
+--[[ Atualizar a degradação para o player quando houver alguma atualização. ]]
+function Inventory.UpdateDegradation(inv, slot)
+	inv = Inventory(inv)
+
+	if not inv then
+		return
+	end
+
+	slot = inv.items[slot]
+
+	if not slot then
+		return
+	end
+
+	if inv.type ~= 'player' then
+		return
+	end
+
+	local playerId = inv.owner
+
+	inv:syncSlotsWithClients({
+		{
+			item = slot,
+			inventory = inv.id
+		}
+	}, true)
+end
+
+exports('UpdateDegradation', Inventory.UpdateDegradation)
+
 local Utils = require 'modules.utils.server'
 
 ---@param inv inventory
@@ -2482,7 +2513,17 @@ local function updateWeapon(source, action, value, slot, specialAmmo)
 				return
 			end
 
-			if action == 'load' and weapon.metadata.durability > 0 then
+			local weaponDurabilityCheck
+
+			if IS_GTAV then
+				weaponDurabilityCheck = weapon.metadata.durability > 0
+			end
+			
+			if IS_RDR3 then
+				weaponDurabilityCheck = weapon.metadata.degradation < 1.0
+			end
+
+			if action == 'load' and weaponDurabilityCheck then
 				local ammo = Items(weapon.name).ammoname
 				local diff = value - (weapon.metadata.ammo or 0)
 
@@ -2514,7 +2555,9 @@ local function updateWeapon(source, action, value, slot, specialAmmo)
 				elseif value < weapon.metadata.ammo then
 					local durability = Items(weapon.name).durability * math.abs((weapon.metadata.ammo or 0.1) - value)
 					weapon.metadata.ammo = value
-					weapon.metadata.durability = weapon.metadata.durability - durability
+					if IS_GTAV then
+						weapon.metadata.durability = weapon.metadata.durability - durability
+					end
 					weapon.weight = Inventory.SlotWeight(item, weapon)
 				end
 			elseif action == 'melee' and value > 0 then
@@ -2524,6 +2567,10 @@ local function updateWeapon(source, action, value, slot, specialAmmo)
             if (weapon.metadata.durability or 0) < 0 then
                 weapon.metadata.durability = 0
             end
+
+			if weapon.metadata.degradation and weapon.metadata.degradation >= 1.0 and action ~= 'load' and action ~= 'component' then
+				TriggerClientEvent('ox_inventory:disarm', source)
+			end
 
 			if action ~= 'throw' then
 				inventory:syncSlotsWithPlayer({

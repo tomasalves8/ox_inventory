@@ -356,6 +356,7 @@ end)
 
 local Animations = lib.load('data.animations')
 local Items = require 'modules.items.client'
+
 local usingItem = false
 
 ---@param data { name: string, label: string, count: number, slot: number, metadata: table<string, any>, weight: number }
@@ -573,7 +574,6 @@ local function useSlot(slot, noAnim)
 				SetCurrentPedWeapon(cache.ped, data.hash, false, 0, false, false)
 			end
 
-
 			useItem(data, function(result)
 				if result then
                     local sleep
@@ -585,11 +585,25 @@ local function useSlot(slot, noAnim)
 
 		elseif currentWeapon then
 			if data.ammo then
-				if EnableWeaponWheel or currentWeapon.metadata.durability <= 0 then return end
+				if EnableWeaponWheel or currentWeapon.metadata.durability <= 0 or (currentWeapon.metadata.degradation and currentWeapon.metadata.degradation >= 1.0) then
+					return
+				end
 
 				local clipSize = GetMaxAmmoInClip(playerPed, currentWeapon.hash, true)
 				local currentAmmo = GetAmmoInPedWeapon(playerPed, currentWeapon.hash)
 				local _, maxAmmo = GetMaxAmmo(playerPed, currentWeapon.hash)
+
+				local isDualWeaponActived = GetAllowDualWield(playerPed)
+				local ret, primaryWeapon = GetCurrentPedWeapon(playerPed, 0, 2, 0)
+				local ret, secondaryWeapon = GetCurrentPedWeapon(playerPed, 0, 3, 0)
+		
+				local hasPrimaryWeapon = primaryWeapon ~= `WEAPON_UNARMED`
+				local hasSecondaryWeapon = secondaryWeapon ~= `WEAPON_UNARMED`
+		
+				if hasPrimaryWeapon and hasSecondaryWeapon and not isDualWeaponActived then
+					Citizen.InvokeNative(0x83B8D50EB9446BBA, playerPed, true)
+					isDualWeaponActived = true
+				end
 
 				local isABow = currentWeapon.hash == `WEAPON_BOW` or currentWeapon.hash == `WEAPON_BOW_IMPROVED`
 
@@ -656,6 +670,10 @@ local function useSlot(slot, noAnim)
 					if maxAmmo > clipSize then
 						clipSize = GetMaxAmmoInClip(playerPed, currentWeapon.hash, true)
 					end
+					
+					if isDualWeaponActived then
+						clipSize = clipSize * 2
+					end
 
 					currentAmmo = GetAmmoInPedWeapon(playerPed, currentWeapon.hash)
 					local missingAmmo = clipSize - currentAmmo
@@ -671,6 +689,8 @@ local function useSlot(slot, noAnim)
 							TaskReloadWeapon(playerPed, true)
 						end
 					else
+						-- newAmmo = isDualWeaponActived and newAmmo * 3 or newAmmo
+
 						AddAmmoToPed(playerPed, currentWeapon.hash, addAmmo)
 						Wait(100)
 
@@ -882,7 +902,7 @@ local function registerCommands()
 		if not currentWeapon or not canUseItem(true) then return end
 
 		if currentWeapon.ammo then
-			if currentWeapon.metadata.durability > 0 then
+			if currentWeapon?.metadata?.durability > 0 then
 				local slotId = Inventory.GetSlotIdWithItem(currentWeapon.ammo, { type = currentWeapon.metadata.specialAmmo }, false)
 
 				if slotId then
@@ -1017,7 +1037,8 @@ local function registerCommands()
 					end
 
 					:: skip_hotkey_processing ::
-					
+
+					DisableControlAction(0, `INPUT_OPEN_WHEEL_MENU`)
 					if IsDisabledControlJustPressed(0, `INPUT_OPEN_WHEEL_MENU`) then -- tab
 						if not client.weaponWheel and not IsPauseMenuActive() then
 							SendNUIMessage({ action = 'toggleHotbar' })
@@ -1559,6 +1580,12 @@ RegisterNetEvent('ox_inventory:setPlayerInventory', function(currentDrops, inven
 			if weaponHash ~= currentWeapon.hash and currentWeapon.timer then
 				local weaponCount = Items[currentWeapon.name]?.count
 
+				if IS_RDR3 then
+					if weaponHash == `WEAPON_UNARMED` then
+						goto continue
+					end
+				end
+
 				if weaponCount > 0 then
 					SetCurrentPedWeapon(playerPed, currentWeapon.hash, true)
 					SetAmmoInClip(playerPed, currentWeapon.hash, currentWeapon.metadata.ammo)
@@ -1570,6 +1597,8 @@ RegisterNetEvent('ox_inventory:setPlayerInventory', function(currentDrops, inven
 				if weaponHash ~= currentWeapon.hash then
 					currentWeapon = Weapon.Disarm(currentWeapon, true)
 				end
+
+				::continue::
 			end
 		elseif client.weaponmismatch and not client.ignoreweapons[weaponHash] then
 			local weaponType = GetWeapontypeGroup(weaponHash)
@@ -1630,10 +1659,13 @@ RegisterNetEvent('ox_inventory:setPlayerInventory', function(currentDrops, inven
 				DisableControlAction(0, 80, true)
 				DisableControlAction(0, 140, true)
 
-				if currentWeapon.metadata.durability <= 0 then
-					DisablePlayerFiring(playerId, true)
-				elseif client.aimedfiring and not currentWeapon.melee and currentWeapon.group ~= `GROUP_PETROLCAN` and not IsPlayerFreeAiming(playerId) then
-					DisablePlayerFiring(playerId, true)
+				---- USING DEGRATATION TO RDR3 WEAPONS
+				if IS_GTAV then
+					if currentWeapon?.metadata?.durability <= 0 then
+						DisablePlayerFiring(playerId, true)
+					elseif client.aimedfiring and not currentWeapon.melee and currentWeapon.group ~= `GROUP_PETROLCAN` and not IsPlayerFreeAiming(playerId) then
+						DisablePlayerFiring(playerId, true)
+					end
 				end
 
 				local weaponAmmo = currentWeapon.metadata.ammo

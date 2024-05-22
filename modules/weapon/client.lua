@@ -40,12 +40,16 @@ function Weapon.Equip(item, data, noWeaponAnim)
 
 	item.hash = data.hash
 	item.ammo = data.ammoname
+
+	print(" SOU MELEE ", item.melee)
+
 	if IS_GTAV then
 		item.melee = GetWeaponDamageType(data.hash) == 2 and 0
 	end
 	if IS_RDR3 then
-		item.melee = IsWeaponMeleeWeapon(data.hash)
+		item.melee = IsWeaponAGun(data.hash) == 0
 	end
+
 	item.timer = 0
 	item.throwable = data.throwable
 	item.group = GetWeapontypeGroup(item.hash)
@@ -66,6 +70,16 @@ function Weapon.Equip(item, data, noWeaponAnim)
 				Citizen.InvokeNative(0xB282DC6EBD803C75, playerPed, data.hash, tonumber(item.count), true, 0) -- GIVE_DELAYED_WEAPON_TO_PED
 			else	
 				Citizen.InvokeNative(0xB282DC6EBD803C75, playerPed, data.hash, item.metadata.ammo, true, 0) -- GIVE_DELAYED_WEAPON_TO_PED
+			end
+
+			local components in item.metadata
+
+			if components then
+				assert(components, 'Cade os components?')
+			
+				for i = 1, #components do
+					ApplyWeaponComponent(playerPed, data.hash, components[i])
+				end
 			end
 		end
 	end
@@ -105,7 +119,29 @@ function Weapon.Equip(item, data, noWeaponAnim)
 	end
 
 	if IS_RDR3 then
-		SetCurrentPedWeapon(playerPed, data.hash, false, 0, false, false)
+		local isDualWeaponActived =  GetAllowDualWield(playerPed)
+
+		local ret, primaryWeapon = GetCurrentPedWeapon(playerPed, 0, 2, 0)
+		local ret, secondaryWeapon = GetCurrentPedWeapon(playerPed, 0, 3, 0)
+
+		local hasPrimaryWeapon = primaryWeapon ~= `WEAPON_UNARMED`
+		local hasSecondaryWeapon = secondaryWeapon ~= `WEAPON_UNARMED`
+
+		if hasPrimaryWeapon and hasSecondaryWeapon and not isDualWeaponActived then
+			Citizen.InvokeNative(0x83B8D50EB9446BBA, playerPed, true)
+			isDualWeaponActived = true
+		end
+
+		if isDualWeaponActived and (hasPrimaryWeapon == data.hash or hasSecondaryWeapon == data.hash) then
+			if hasPrimaryWeapon and hasSecondaryWeapon then
+				if hasPrimaryWeapon == data.hash or hasSecondaryWeapon == data.hash then
+					Citizen.InvokeNative(0xB282DC6EBD803C75, playerPed, hasPrimaryWeapon,  item.metadata.ammo or 100, true, 0)
+					Citizen.InvokeNative(0x5E3BDDBCB83F3D84, playerPed, hasSecondaryWeapon,  item.metadata.ammo or 100, true, 0, true, 1.0)
+				end
+			end
+		else
+			SetCurrentPedWeapon(playerPed, data.hash, false, 0, false, false)
+		end
 
 		Citizen.InvokeNative(0x2A7B50E, true) -- SetWeaponsNoAutoswap
 	end
@@ -124,6 +160,47 @@ function Weapon.Equip(item, data, noWeaponAnim)
 
 	if client.weaponnotify then
 		Utils.ItemNotify({ item, 'ui_equipped' })
+	end
+
+	-- IsWeaponAGun
+	if IsWeaponAGun(data.hash) ~= 0 then
+		Citizen.CreateThreadNow(function()
+			while GetCurrentPedWeaponEntityIndex(playerPed, 0) == 0 do
+				Wait(0)
+			end
+
+			if not item?.slot == data.slot then
+				--[[ Garantir que ainda seja a mesma arma. ]]
+				return
+			end
+
+			local weaponEntityId = GetCurrentPedWeaponEntityIndex(playerPed, 0)
+
+			local degradation, soot, dirt, damage in item.metadata
+		
+			assert(degradation, 'Cade o degradation?')
+
+			-- SetWeaponDegradation
+			Citizen.InvokeNative(0xA7A57E89E965D839, weaponEntityId, degradation + 0.0001)
+
+			assert(soot, 'Cade o soot?')
+
+			-- SetWeaponSoot
+			Citizen.InvokeNative(0xA9EF4AD10BDDDB57, weaponEntityId, soot + 0.0001, false)
+
+			assert(dirt, 'Cade o dirt?')
+
+			-- SetWeaponDirt
+			Citizen.InvokeNative(0x812CE61DEBCAB948, weaponEntityId, dirt + 0.0001, false)
+
+			assert(damage, 'Cade o damage?')
+
+			-- SetWeaponDamage
+			Citizen.InvokeNative(0xE22060121602493B, weaponEntityId, damage + 0.0001, false)
+
+			--[[ Os estados de degradação foram aplicados, notificar os outros scripts... ]]
+			TriggerEvent('ox_inventory:equippedWeaponDegradationIsReady', item.slot)
+		end)
 	end
 
 	return item, sleep
@@ -206,10 +283,244 @@ function Weapon.ClearAll(currentWeapon)
 end
 
 if IS_RDR3 then
+	function ApplyWeaponComponent(ped, weaponHash, weaponComponentHash)
+			
+		local weapon_component_model_hash = Citizen.InvokeNative(0x59DE03442B6C9598, weaponComponentHash)  -- GetWeaponComponentTypeModel
+
+		if weapon_component_model_hash and weapon_component_model_hash ~= 0 then
+
+			RequestModel(weapon_component_model_hash)
+
+			local i = 0
+
+			while not HasModelLoaded(weapon_component_model_hash) and i <= 300 do
+				i = i + 1
+				Wait(0)
+			end
+
+			if HasModelLoaded(weapon_component_model_hash) then
+				Citizen.InvokeNative(0x74C9090FDD1BB48E, ped, weaponComponentHash, weaponHash, true)  -- GiveWeaponComponentToEntity
+				SetModelAsNoLongerNeeded(weapon_component_model_hash)
+			end
+		end
+	end
+
 	function GetSelectedPedWeapon(playerPed)
 		local _, wep = GetCurrentPedWeapon(playerPed, true, 0, true)
 		return wep
+	end	
+
+	local function moveInventoryItem(inventoryId, old, new, slot)
+		local outGUID = DataView.ArrayBuffer(8 * 13)
+		if not slot then slot = 1 end
+		local sHash = "SLOTID_WEAPON_"..tostring(slot)
+		local success = Citizen.InvokeNative(0xDCCAA7C3BFD88862, inventoryId, old, new, GetHashKey(sHash), 1, outGUID:Buffer())
+		return success and outGUID or nil
 	end
+
+	local function getGuidFromItemId(inventoryId, itemData, category, slotId) 
+		local outItem = DataView.ArrayBuffer(8 * 13)
+		local success = Citizen.InvokeNative(0x886DFD3E185C8A89, inventoryId, itemData and itemData or 0, category, slotId, outItem:Buffer())
+		return success and outItem or nil
+	end
+
+	local equippedWeapons = {}
+	
+	function addWeapon(weapon, slot, id)
+		if slot == 0 and id then
+			if #equippedWeapons > 0 then
+				slot = 1
+			end
+		end
+		local weaponHash = GetHashKey(weapon)
+		local sHash = "SLOTID_WEAPON_"..tostring(slot)
+		local slotHash = GetHashKey(sHash)
+		local reason = GetHashKey("ADD_REASON_DEFAULT")
+		local inventoryId = 1
+		local move = false
+		
+		--Now add it to the characters inventory
+		local isValid = Citizen.InvokeNative(0x6D5D51B188333FD1, weaponHash, 0) --ItemdatabaseIsKeyValid
+		if not isValid then
+			print("Non valid weapon")
+			return false
+		end
+		
+		local characterItem = getGuidFromItemId(inventoryId, nil, GetHashKey("CHARACTER"), 0xA1212100) --return func_1367(joaat("CHARACTER"), func_2485(), -1591664384, bParam0);
+		if not characterItem then
+			print("no characterItem")
+			return false
+		end
+		
+		local weaponItem = getGuidFromItemId(inventoryId, characterItem:Buffer(), 923904168, -740156546) --return func_1367(923904168, func_1889(1), -740156546, 0);
+		if not weaponItem then
+			print("no weaponItem")
+			return false
+		end
+		
+		if slot == 1 and id then
+			if #equippedWeapons > 0 then
+				local newItemData = DataView.ArrayBuffer(8 * 13)
+				local newGUID = moveInventoryItem(inventoryId, equippedWeapons[1].guid, weaponItem:Buffer())
+				if not newGUID then
+					print("can't move item")
+					return false
+				end
+				slotHash = GetHashKey('SLOTID_WEAPON_0')
+				slot = 0
+				move = true
+			else
+				slotHash = GetHashKey('SLOTID_WEAPON_0')
+				slot = 0
+			end
+		end
+		
+		local itemData = DataView.ArrayBuffer(8 * 13)
+		local isAdded = Citizen.InvokeNative(0xCB5D11F9508A928D, inventoryId, itemData:Buffer(), weaponItem:Buffer(), weaponHash, slotHash, 1, reason) --Actually add the item now
+		if not isAdded then 
+			print("Not added")
+			return false
+		end
+		
+		local equipped = Citizen.InvokeNative(0x734311E2852760D0, inventoryId, itemData:Buffer(), true)
+		if not equipped then
+			print("no equip")
+			return false
+		end
+		
+		Citizen.InvokeNative(0x12FB95FE3D579238, PlayerPedId(), itemData:Buffer(), true, slot, false, false)
+		if move then
+			Citizen.InvokeNative(0x12FB95FE3D579238, PlayerPedId(), equippedWeapons[1].guid, true, 1, false, false)
+		end
+
+
+		
+		return true
+	end
+
+	local function givePlayerWeapon(id, weaponHash, itemData, attachPoint, moveWeapon)
+	
+		local addReason = GetHashKey("ADD_REASON_DEFAULT");
+		-- local weaponHash = GetHashKey(weaponName);
+		local ammoCount = 0;
+	
+		-- RequestWeaponAsset
+		Citizen.InvokeNative(0x72D4CB5DB927009C, weaponHash, 0, true);
+
+		-- local slot = attachPoint == 3 and 0 or 1
+	
+		Citizen.InvokeNative(0x12FB95FE3D579238, PlayerPedId(), itemData:Buffer(), true, attachPoint, false, false)
+
+		if moveWeapon then
+			Citizen.InvokeNative(0x12FB95FE3D579238, PlayerPedId(), equippedWeapons[1].guid, true, 1, false, false)
+		end
+
+		if id then
+			local nWeapon = {
+				id = id,
+				guid = itemData:Buffer(),
+			}
+			table.insert(equippedWeapons, nWeapon)
+		end
+		-- GIVE_WEAPON_TO_PED
+		-- Citizen.InvokeNative("0x5E3BDDBCB83F3D84", PlayerPedId(), weaponHash, ammoCount, false, true, attachPoint, true, 0.0, 0.0, addReason, true, 0.0, false);
+	end
+	
+	local function addWardrobeInventoryItem(id, slot, itemName, attachPoint)
+		local itemHash = GetHashKey(itemName)
+		local addReason = GetHashKey("ADD_REASON_DEFAULT")
+
+		local sHash = ("SLOTID_WEAPON_%s"):format(slot)
+		local slotHash = GetHashKey(sHash)
+
+		if slot == 0 and id then
+			if #equippedWeapons > 0 then
+				slot = 1
+			end
+		end
+
+		local inventoryId = 1
+	
+		-- _ITEMDATABASE_IS_KEY_VALID
+		local isValid = Citizen.InvokeNative(0x6D5D51B188333FD1, itemHash, 0) --ItemdatabaseIsKeyValid
+		if not isValid then
+			return false
+		end
+		
+		local characterItem = getGuidFromItemId(inventoryId, nil, GetHashKey("CHARACTER"), 0xA1212100) --return func_1367(joaat("CHARACTER"), func_2485(), -1591664384, bParam0);
+		if not characterItem then
+			print("no characterItem")
+			return false
+		end
+		
+		local weaponItem = getGuidFromItemId(inventoryId, characterItem:Buffer(), 923904168, -740156546) --return func_1367(923904168, func_1889(1), -740156546, 0);
+		if not weaponItem then
+			print("no weaponItem")
+			return false
+		end
+
+		local moveWeapon = false
+
+		if slot == 1 and id then
+			if #equippedWeapons > 0 then
+				local newItemData = DataView.ArrayBuffer(8 * 13)
+				local newGUID = moveInventoryItem(inventoryId, equippedWeapons[1].guid, weaponItem:Buffer())
+				if not newGUID then
+					print("can't move item")
+					return false
+				end
+				slotHash = GetHashKey('SLOTID_WEAPON_0')
+				slot = 0
+				moveWeapon = true
+			else
+				slotHash = GetHashKey('SLOTID_WEAPON_0')
+				slot = 0
+			end
+		end
+	
+		local itemData = DataView.ArrayBuffer(8 * 13)
+		-- _INVENTORY_ADD_ITEM_WITH_GUID
+		local isAdded = Citizen.InvokeNative(0xCB5D11F9508A928D, inventoryId, itemData:Buffer(), weaponItem:Buffer(), itemHash, slotHash, 1, addReason) 
+		if not isAdded then 
+			print(" no isAdded ")
+			return false
+		end
+	
+		-- _INVENTORY_EQUIP_ITEM_WITH_GUID
+		local equipped = Citizen.InvokeNative(0x734311E2852760D0, inventoryId, itemData:Buffer(), true);
+		if not equipped then
+			return false
+		end
+
+		return givePlayerWeapon(id, itemHash, itemData, attachPoint, moveWeapon);
+	end
+	
+	local attachOriginal = true
+	RegisterNetEvent("ox_inventory:ReplaceAttachPoint", function(item, attachPoint)
+		local id = equippedWeapons[1] and 2 or 1
+		local slot = attachPoint == 2 and 0 or 1
+
+		addWardrobeInventoryItem(id, slot, item.name, attachPoint)
+		-- #TODO: Checar se o player tem dois coldres e só depois de ter duas armas adicionar como DualWield Ativo
+		-- Citizen.InvokeNative(PlayerPedId(), true);
+	end)
+	
+	AddEventHandler("ox_inventory:ReplaceCurrentAttachPoint", function(itemSlot)
+	
+		local weapon = lib.callback.await('nxt_inventory:getItemBySlot', nil, itemSlot)
+	
+		local attachPoint = 0
+	
+		if attachOriginal then
+			attachPoint = 12
+		end
+
+		local weaponHash = GetHashKey(weapon)
+	
+		Citizen.InvokeNative(0xADF692B254977C0C, PlayerPedId(), weaponHash, true, attachPoint)
+	
+		attachOriginal = not attachOriginal
+	end)
 end
 
 Utils.Disarm = Weapon.Disarm
