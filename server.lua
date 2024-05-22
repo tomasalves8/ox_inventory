@@ -117,13 +117,11 @@ local function openInventory(source, invType, data, ignoreSecurityChecks)
 
     left:closeInventory(true)
 	Inventory.CloseAll(left, source)
-	print(" invType:: ", invType)
 
     if invType == 'player' and data == source then
         data = nil
     end
 
-	print(" data :: ", json.encode(data))
 	if data then
         local isDataTable = type(data) == 'table'
 		if invType == 'stash' then
@@ -165,7 +163,7 @@ local function openInventory(source, invType, data, ignoreSecurityChecks)
 					right = Inventory.Create(data.metadata.container, data.label, invType, data.metadata.size[1], 0, data.metadata.size[2], false)
 				end
 			else left.containerSlot = nil end
-		else right = Inventory(data)  print(json.encode(data)) end
+		else right = Inventory(data) end
 
 		if not right then return end
 
