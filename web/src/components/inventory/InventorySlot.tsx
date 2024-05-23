@@ -119,7 +119,8 @@ const InventorySlot: React.ForwardRefRenderFunction<HTMLDivElement, SlotProps> =
 
   const refs = useMergeRefs([connectRef, ref]);
 
-  const isWeapon = item?.name?.search("weapon") != 0;
+  const hasWeaponInName = item?.name?.toLocaleLowerCase().search("weapon")
+  const isWeapon = hasWeaponInName != -1 && hasWeaponInName != undefined;
 
   return (
     <div
@@ -173,7 +174,10 @@ const InventorySlot: React.ForwardRefRenderFunction<HTMLDivElement, SlotProps> =
                       })}g `
                   : ''}
               </p>
-              <span>{item.count > 1 ? item.name == "money" ? (item.count / 100).toFixed(2) : item.count.toLocaleString('en-us') : ''}</span>
+                { isWeapon 
+                  ? <span> { item.metadata?.ammo }/{ item.metadata?.ammoMaxClip ?? item.metadata?.ammo }</span> 
+                  : <span>{item.count > 1 ? item.name == "money" ? `${(item.count / 100).toFixed(2)}` : item.count.toLocaleString('en-us') : ''}</span>
+                }
             </div>
           </div>
           <div>
@@ -215,11 +219,11 @@ const InventorySlot: React.ForwardRefRenderFunction<HTMLDivElement, SlotProps> =
                 )}
               </>
             )}
-            <div className="inventory-slot-label-box">
+            {/* <div className="inventory-slot-label-box">
               <div className="inventory-slot-label-text">
                 {item.metadata?.label ? item.metadata.label : Items[item.name]?.label || item.name}
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
       )}

@@ -55,6 +55,25 @@ const InventoryHotbar: React.FC = () => {
                   </div>
                 </div>
                 <div>
+
+                  <div className="item-slot-info-wrapper">
+                    <p>
+                      {item.weight > 0
+                        ? item.weight >= 1000
+                          ? `${(item.weight / 1000).toLocaleString('en-us', {
+                              minimumFractionDigits: 2,
+                            })}kg `
+                          : `${item.weight.toLocaleString('en-us', {
+                              minimumFractionDigits: 0,
+                            })}g `
+                        : ''}
+                    </p>
+                      { item?.name?.toLocaleLowerCase().search("weapon") != -1 && item?.name?.toLocaleLowerCase().search("weapon") != undefined  
+                        ? <span> { item.metadata?.ammo }/{ item.metadata?.ammoMaxClip ?? item.metadata?.ammo }</span> 
+                        : <span>{item.count > 1 ? item.name == "money" ? `${(item.count / 100).toFixed(2)}` : item.count.toLocaleString('en-us') : ''}</span>
+                      }
+                  </div>
+                  
                   {item?.durability !== undefined && <WeightBar percent={item.durability} durability />}
                   <div className="inventory-slot-label-box">
                     <div className="inventory-slot-label-text">
