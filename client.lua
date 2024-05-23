@@ -596,7 +596,7 @@ local function useSlot(slot, noAnim)
 				local currentAmmo = GetAmmoInPedWeapon(playerPed, currentWeapon.hash)
 				local _, maxAmmo = GetMaxAmmo(playerPed, currentWeapon.hash)
 
-				local isDualWeaponActived = GetAllowDualWield(playerPed)
+				local isDualWeaponActived = GetAllowDualWield(playerPed) == 1
 				local ret, primaryWeapon = GetCurrentPedWeapon(playerPed, 0, 2, 0)
 				local ret, secondaryWeapon = GetCurrentPedWeapon(playerPed, 0, 3, 0)
 		
@@ -692,7 +692,7 @@ local function useSlot(slot, noAnim)
 							TaskReloadWeapon(playerPed, true)
 						end
 					else
-						-- newAmmo = isDualWeaponActived and newAmmo * 3 or newAmmo
+						-- newAmmo = isDualWeaponActived and newAmmo * 2 or newAmmo
 
 						AddAmmoToPed(playerPed, currentWeapon.hash, addAmmo)
 						Wait(100)
@@ -1133,6 +1133,15 @@ local function updateInventory(data, weight)
 
 			if item.count then
 				itemCount[item.name] = (itemCount[item.name] or 0) + item.count
+			end
+
+			if item?.metadata then
+				if item.metadata?.ammo ~= nil then
+					local weaponHash = GetHashKey( item.name )
+					local clipSize = GetMaxAmmoInClip(cache.ped, weaponHash, true)
+
+					item.metadata.ammoMaxClip = clipSize
+				end
 			end
 
 			changes[item.slot] = item.count and item or false
