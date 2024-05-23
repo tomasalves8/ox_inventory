@@ -41,8 +41,6 @@ function Weapon.Equip(item, data, noWeaponAnim)
 	item.hash = data.hash
 	item.ammo = data.ammoname
 
-	print(" SOU MELEE ", item.melee)
-
 	if IS_GTAV then
 		item.melee = GetWeaponDamageType(data.hash) == 2 and 0
 	end
