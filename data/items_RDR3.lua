@@ -27,8 +27,8 @@ return {
 		["weight"] = 500,
 		["image"] = "reviver",
 		consume = 1,
-		client = { export = 'player_death_state_machine.reviverItem' },
-		server = { export = 'player_death_state_machine.reviverItem' },
+		client = { export = 'frp_death_state.reviverItem' },
+		server = { export = 'frp_death_state.reviverItem' },
 	},
 
 	-- REMÉDIOS                                 
@@ -39,7 +39,7 @@ return {
 		["weight"] = 500,
 		["image"] = "tonico",
 		consume = 0,
-		server = { export = 'player_death_state_machine.itemTonic' },
+		server = { export = 'frp_death_state.itemTonic' },
 	},
 
 	["tonicop"] = {
@@ -49,7 +49,7 @@ return {
 		["weight"] = 700,
 		["image"] = "tonicoP",
 		consume = 0,
-		server = { export = 'player_death_state_machine.itemTonic' },
+		server = { export = 'frp_death_state.itemTonic' },
 	},
 
 	["medicine"] =
@@ -60,7 +60,7 @@ return {
 		["image"] = "medicine",
 		degrade = 15000,
 		consume = 1,
-		client = { export = 'player_death_state_machine.itemMedicine' },
-		server = { export = 'player_death_state_machine.itemMedicine' },
+		client = { export = 'frp_death_state.itemMedicine' },
+		server = { export = 'frp_death_state.itemMedicine' },
 	},
 }
