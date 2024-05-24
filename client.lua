@@ -710,7 +710,6 @@ local function useSlot(slot, noAnim)
 						end
 
 						if IS_RDR3 then
-							print( " dk")
 							AddAmmoToPedByType( playerPed, GetHashKey(resp.name), addAmmo )
 							SetAmmoTypeForPedWeapon( playerPed,  currentWeapon.hash,  GetHashKey(resp.name) )
 							
