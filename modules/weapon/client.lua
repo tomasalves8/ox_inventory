@@ -67,7 +67,9 @@ function Weapon.Equip(item, data, noWeaponAnim)
 			if data.throwable then
 				Citizen.InvokeNative(0xB282DC6EBD803C75, playerPed, data.hash, tonumber(item.count), true, 0) -- GIVE_DELAYED_WEAPON_TO_PED
 			else	
-				Citizen.InvokeNative(0xB282DC6EBD803C75, playerPed, data.hash, item.metadata.ammo, true, 0) -- GIVE_DELAYED_WEAPON_TO_PED
+				Citizen.InvokeNative(0xB282DC6EBD803C75, playerPed, data.hash, 0, true, 0) -- GIVE_DELAYED_WEAPON_TO_PED
+				AddAmmoToPedByType( playerPed, GetHashKey(item.metadata.specialAmmo or item.ammo), item.metadata.ammo )
+				SetAmmoTypeForPedWeapon( playerPed,  data.hash,  GetHashKey(item.metadata.specialAmmo or item.ammo) )
 			end
 
 			local components in item.metadata
@@ -98,12 +100,14 @@ function Weapon.Equip(item, data, noWeaponAnim)
 		end
 	end
 
-	if item.metadata.specialAmmo then
-		local clipComponentKey = ('%s_CLIP'):format(data.model:gsub('WEAPON_', 'COMPONENT_'))
-		local specialClip = ('%s_%s'):format(clipComponentKey, item.metadata.specialAmmo:upper())
-
-		if DoesWeaponTakeWeaponComponent(data.hash, specialClip) then
-			GiveWeaponComponentToPed(playerPed, data.hash, specialClip)
+	if IS_GTAV then
+		if item.metadata.specialAmmo then
+			local clipComponentKey = ('%s_CLIP'):format(data.model:gsub('WEAPON_', 'COMPONENT_'))
+			local specialClip = ('%s_%s'):format(clipComponentKey, item.metadata.specialAmmo:upper())
+			
+			if DoesWeaponTakeWeaponComponent(data.hash, specialClip) then
+				GiveWeaponComponentToPed(playerPed, data.hash, specialClip)
+			end
 		end
 	end
 
@@ -144,9 +148,15 @@ function Weapon.Equip(item, data, noWeaponAnim)
 		Citizen.InvokeNative(0x2A7B50E, true) -- SetWeaponsNoAutoswap
 	end
 
-	SetPedAmmo(playerPed, data.hash, ammo)
 	if IS_GTAV then
+		SetPedAmmo(playerPed, data.hash, ammo)
 		SetTimeout(0, function() RefillAmmoInstantly(playerPed) end)
+	end
+
+	if IS_RDR3 then
+		local ammoTypehash = GetHashKey( item.metadata.specialAmmo or data.ammoname )
+		SetPedAmmoByType( playerPed, ammoTypehash, item.metadata.ammo )
+		Citizen.InvokeNative(0xCC9C4393523833E2, playerPed, data.hash, ammoTypehash )
 	end
 
 	if item.group == `GROUP_PETROLCAN` or item.group == `GROUP_FIREEXTINGUISHER` then
@@ -281,6 +291,12 @@ function Weapon.ClearAll(currentWeapon)
 end
 
 if IS_RDR3 then
+	RegisterNetEvent("ox_inventory:weaponUnloadAmmo", function(item)
+
+		-- if item.ammo then
+			-- RemoveAmmoFromPedByType()
+	end)
+
 	function ApplyWeaponComponent(ped, weaponHash, weaponComponentHash)
 			
 		local weapon_component_model_hash = Citizen.InvokeNative(0x59DE03442B6C9598, weaponComponentHash)  -- GetWeaponComponentTypeModel

@@ -210,7 +210,13 @@ function Inventory.GetSlotWithItem(itemName, metadata, strict)
 	local tablematch = strict and table.matches or table.contains
 
 	for _, slotData in pairs(inventory) do
-		if slotData and slotData.name == item.name and (not metadata or tablematch(slotData.metadata, metadata)) then
+		local isSameName = slotData.name == item.name
+
+		if IS_RDR3 and string.find(slotData.name, item.name) then
+			isSameName = true
+		end
+
+		if slotData and isSameName and (not metadata or tablematch(slotData.metadata, metadata)) then
 			return slotData
 		end
 	end

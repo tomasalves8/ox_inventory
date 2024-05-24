@@ -40,7 +40,7 @@ return {
             label = 'Revolver LeMat',
             weight = 1200,
             durability = 0.03,
-            ammoname = 'ammo_revolver',
+            ammoname = 'AMMO_REVOLVER',
             type = 'WeaponGun',
         },
         ['WEAPON_REVOLVER_NAVY'] = {
@@ -233,14 +233,14 @@ return {
             label = 'Arco',
             weight = 1000,
             durability = 0.03,
-            ammoname = 'ammo_arrow',
+            ammoname = 'AMMO_ARROW',
             type = 'WeaponGun',
         }, 
         ['WEAPON_BOW_IMPROVED'] = {
             label = 'Arco de caça reforçado',
             weight = 1400,
             durability = 0.03,
-            ammoname = 'ammo_arrow',
+            ammoname = 'AMMO_ARROW',
             type = 'WeaponGun',
         }, 
         ['WEAPON_LASSO'] = {
@@ -535,59 +535,224 @@ return {
     },
 
     Ammo = {
-        ['ammo_22'] = {
+        ['AMMO_22'] = {
+            label = 'Munição anti-pragas',
+            weight = 3,
+            type = 'Generic',
+        },
+        ['AMMO_22_TRANQUILIZER'] = {
             label = 'Munição anti-pragas',
             weight = 3,
             type = 'Generic',
         },    
 
-        ['ammo_arrow'] = {
+        ['AMMO_ARROW'] = {
             label = 'Flechas',
             weight = 3,
             type = 'Generic',
         },
-        ['ammo_arrow_fire'] = {
+        ['AMMO_ARROW_CONFUSION'] = {
+            label = 'Flechas Fogo',
+            weight = 3,
+            type = 'Generic',
+        },
+        ['AMMO_ARROW_DISORIENT'] = {
+            label = 'Flechas Fogo',
+            weight = 3,
+            type = 'Generic',
+        },
+        ['AMMO_ARROW_DRAIN'] = {
+            label = 'Flechas Fogo',
+            weight = 3,
+            type = 'Generic',
+        },
+        ['AMMO_ARROW_DYNAMITE'] = {
+            label = 'Flechas Fogo',
+            weight = 3,
+            type = 'Generic',
+        },
+        ['AMMO_ARROW_FIRE'] = {
+            label = 'Flechas Fogo',
+            weight = 3,
+            type = 'Generic',
+        },
+        ['AMMO_ARROW_IMPROVED'] = {
+            label = 'Flechas Fogo',
+            weight = 3,
+            type = 'Generic',
+        },
+        ['AMMO_ARROW_POISON'] = {
+            label = 'Flechas Fogo',
+            weight = 3,
+            type = 'Generic',
+        },
+        ['AMMO_ARROW_SMALL_GAME'] = {
+            label = 'Flechas Fogo',
+            weight = 3,
+            type = 'Generic',
+        },
+        ['AMMO_ARROW_TRACKING'] = {
+            label = 'Flechas Fogo',
+            weight = 3,
+            type = 'Generic',
+        },
+        ['AMMO_ARROW_TRAIL'] = {
+            label = 'Flechas Fogo',
+            weight = 3,
+            type = 'Generic',
+        },
+        ['AMMO_ARROW_WOUND'] = {
             label = 'Flechas Fogo',
             weight = 3,
             type = 'Generic',
         },
 
-        ['ammo_bolas'] = {
+        ['AMMO_BOLAS'] = {
+            label = 'Bolas',
+            weight = 3,
+            type = 'Generic',
+        },
+        ['AMMO_BOLAS_HAWKMOTH'] = {
+            label = 'Bolas',
+            weight = 3,
+            type = 'Generic',
+        },
+        ['AMMO_BOLAS_INTERTWINED'] = {
+            label = 'Bolas',
+            weight = 3,
+            type = 'Generic',
+        },
+        ['AMMO_BOLAS_IRONSPIKED'] = {
             label = 'Bolas',
             weight = 3,
             type = 'Generic',
         },
 
-        ['ammo_revolver'] = {
+        ['AMMO_REVOLVER'] = {
             label = 'Munição de Revolver',
             weight = 3,
             type = 'Generic',
         },
-
-        ['ammo_revolver_express_explosive'] = {
+        ['AMMO_REVOLVER_EXPRESS'] = {
             label = 'Munição de Revolver Exposiva',
             weight = 3,
             type = 'Generic',
         },
-        ['ammo_pistol'] = {
+        ['AMMO_REVOLVER_EXPRESS_EXPLOSIVE'] = {
+            label = 'Munição de Revolver Exposiva',
+            weight = 3,
+            type = 'Generic',
+        },
+        ['AMMO_REVOLVER_HIGH_VELOCITY'] = {
+            label = 'Munição de Revolver Exposiva',
+            weight = 3,
+            type = 'Generic',
+        },
+        ['AMMO_REVOLVER_SPLIT_POINT'] = {
+            label = 'Munição de Revolver Exposiva',
+            weight = 3,
+            type = 'Generic',
+        },
+
+        ['AMMO_PISTOL'] = {
+            label = 'Munição de Pistola',
+            weight = 3,
+            type = 'Generic',
+        },
+        ['AMMO_PISTOL_EXPRESS'] = {
+            label = 'Munição de Pistola',
+            weight = 3,
+            type = 'Generic',
+        },
+        ['AMMO_PISTOL_EXPRESS_EXPLOSIVE'] = {
+            label = 'Munição de Pistola',
+            weight = 3,
+            type = 'Generic',
+        },
+        ['AMMO_PISTOL_HIGH_VELOCITY'] = {
+            label = 'Munição de Pistola',
+            weight = 3,
+            type = 'Generic',
+        },
+        ['AMMO_PISTOL_SPLIT_POINT'] = {
             label = 'Munição de Pistola',
             weight = 3,
             type = 'Generic',
         },
 
-        ['ammo_shotgun'] = {
+        ['AMMO_SHOTGUN'] = {
+            label = 'Munição de Escopeta',
+            weight = 3,
+            type = 'Generic',
+        },
+        ['AMMO_SHOTGUN_BUCKSHOT_INCENDIARY'] = {
+            label = 'Munição de Escopeta',
+            weight = 3,
+            type = 'Generic',
+        },
+        ['AMMO_SHOTGUN_SLUG'] = {
+            label = 'Munição de Escopeta',
+            weight = 3,
+            type = 'Generic',
+        },
+        ['AMMO_SHOTGUN_SLUG_EXPLOSIVE'] = {
             label = 'Munição de Escopeta',
             weight = 3,
             type = 'Generic',
         },
 
-        ['ammo_repeater'] = {
+        ['AMMO_REPEATER'] = {
+            label = 'Munição de Repetição',
+            weight = 3,
+            type = 'Generic',
+        },
+        ['AMMO_REPEATER_EXPRESS'] = {
+            label = 'Munição de Repetição',
+            weight = 3,
+            type = 'Generic',
+        },
+        ['AMMO_REPEATER_EXPRESS_EXPLOSIVE'] = {
+            label = 'Munição de Repetição',
+            weight = 3,
+            type = 'Generic',
+        },
+        ['AMMO_REPEATER_HIGH_VELOCITY'] = {
+            label = 'Munição de Repetição',
+            weight = 3,
+            type = 'Generic',
+        },
+        ['AMMO_REPEATER_SPLIT_POINT'] = {
             label = 'Munição de Repetição',
             weight = 3,
             type = 'Generic',
         },
 
-        ['ammo_rifle'] = {
+        ['AMMO_RIFLE'] = {
+            label = 'Munição de Rifle',
+            weight = 3,
+            type = 'Generic',
+        },
+        ['AMMO_RIFLE_ELEPHANT'] = {
+            label = 'Munição de Rifle',
+            weight = 3,
+            type = 'Generic',
+        },
+        ['AMMO_RIFLE_EXPRESS'] = {
+            label = 'Munição de Rifle',
+            weight = 3,
+            type = 'Generic',
+        },
+        ['AMMO_RIFLE_EXPRESS_EXPLOSIVE'] = {
+            label = 'Munição de Rifle',
+            weight = 3,
+            type = 'Generic',
+        },
+        ['AMMO_RIFLE_HIGH_VELOCITY'] = {
+            label = 'Munição de Rifle',
+            weight = 3,
+            type = 'Generic',
+        },
+        ['AMMO_RIFLE_SPLIT_POINT'] = {
             label = 'Munição de Rifle',
             weight = 3,
             type = 'Generic',

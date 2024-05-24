@@ -557,7 +557,7 @@ local function useSlot(slot, noAnim)
 					if data.throwable then
 						Citizen.InvokeNative(0xB282DC6EBD803C75, playerPed, data.hash, tonumber(item.count), true, 0) -- GIVE_DELAYED_WEAPON_TO_PED
 					else	
-						Citizen.InvokeNative(0xB282DC6EBD803C75, playerPed, data.hash, item.metadata.ammo, true, 0) -- GIVE_DELAYED_WEAPON_TO_PED
+						Citizen.InvokeNative(0xB282DC6EBD803C75, playerPed, data.hash, item.metadata.specialAmmo and 0 or item.metadata.ammo, true, 0) -- GIVE_DELAYED_WEAPON_TO_PED
 					end
 
 				end
@@ -585,6 +585,12 @@ local function useSlot(slot, noAnim)
 					if sleep then Wait(sleep) end
 				end
 			end, noAnim or IS_RDR3)
+					
+			if IS_RDR3 then
+				local ammoTypehash = GetHashKey( item.metadata.specialAmmo or data.ammoname )
+				SetPedAmmoByType( playerPed, ammoTypehash, item.metadata.ammo )
+				Citizen.InvokeNative(0xCC9C4393523833E2, playerPed, data.hash, ammoTypehash )
+			end
 
 		elseif currentWeapon then
 			if data.ammo then
@@ -629,7 +635,13 @@ local function useSlot(slot, noAnim)
 				if currentAmmo == clipSize then return end
 
 				useItem(data, function(resp)
-					if not resp or resp.name ~= currentWeapon?.ammo then return end
+					local isSameName = resp.name == currentWeapon?.ammo
+					
+					if IS_RDR3 and string.find(resp.name, currentWeapon?.ammo) then
+						isSameName = true
+					end
+
+					if not resp or not isSameName then return end
 
 					if currentWeapon.metadata.specialAmmo ~= resp.metadata.type and type(currentWeapon.metadata.specialAmmo) == 'string' then
 						local clipComponentKey = ('%s_CLIP'):format(Items[currentWeapon.name].model:gsub('WEAPON_', 'COMPONENT_'))
@@ -693,8 +705,22 @@ local function useSlot(slot, noAnim)
 						end
 					else
 						-- newAmmo = isDualWeaponActived and newAmmo * 2 or newAmmo
+						if IS_GTAV then
+							AddAmmoToPed(playerPed, currentWeapon.hash, addAmmo)
+						end
 
-						AddAmmoToPed(playerPed, currentWeapon.hash, addAmmo)
+						if IS_RDR3 then
+							print( " dk")
+							AddAmmoToPedByType( playerPed, GetHashKey(resp.name), addAmmo )
+							SetAmmoTypeForPedWeapon( playerPed,  currentWeapon.hash,  GetHashKey(resp.name) )
+							
+							if resp.name ~= currentWeapon?.ammo then
+								if currentWeapon.metadata.specialAmmo ~= resp.name then
+									currentWeapon.metadata.specialAmmo = resp.name
+								end
+							end
+						end
+
 						Wait(100)
 
 						local makePedReload = IS_GTAV and MakePedReload or N_0x79e1e511ff7efb13
@@ -908,8 +934,7 @@ local function registerCommands()
 
 		if currentWeapon.ammo then
 			if currentWeapon?.metadata?.durability > 0 then
-				local slotId = Inventory.GetSlotIdWithItem(currentWeapon.ammo, { type = currentWeapon.metadata.specialAmmo }, false)
-
+				local slotId = Inventory.GetSlotIdWithItem(currentWeapon.ammo, IS_RDR3 and { } or  { type = currentWeapon.metadata.specialAmmo }, false)
 				if slotId then
 					useSlot(slotId)
 				end

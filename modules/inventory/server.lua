@@ -1272,6 +1272,8 @@ function Inventory.GetItemSlots(inv, item, metadata)
 
 	for k, v in pairs(inv.items) do
 		emptySlots -= 1
+
+		print(" v : ", v.name, item.name)
 		if v.name == item.name then
 			if metadata and v.metadata == nil then
 				v.metadata = {}
@@ -1295,6 +1297,7 @@ exports('GetItemSlots', Inventory.GetItemSlots)
 ---@param ignoreTotal? boolean
 ---@return boolean? success, string? response
 function Inventory.RemoveItem(inv, item, count, metadata, slot, ignoreTotal)
+
 	if type(item) ~= 'table' then item = Items(item) end
 
 	if not item then return false, 'invalid_item' end
@@ -2533,7 +2536,14 @@ local function updateWeapon(source, action, value, slot, specialAmmo)
 				local ammo = Items(weapon.name).ammoname
 				local diff = value - (weapon.metadata.ammo or 0)
 
-				if not Inventory.RemoveItem(inventory, ammo, diff, specialAmmo) then return end
+				local specialAmmoMeta = specialAmmo
+
+				if IS_RDR3 then
+					ammo = specialAmmo
+					specialAmmoMeta = nil
+				end
+
+				if not Inventory.RemoveItem(inventory, ammo, diff, specialAmmoMeta) then return end
 
 				weapon.metadata.ammo = value
 				weapon.metadata.specialAmmo = specialAmmo

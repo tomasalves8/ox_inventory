@@ -60,7 +60,7 @@ local function getItem(_, name)
 
     name = name:lower()
 
-    if name:sub(0, 7) == 'weapon_' then
+    if name:sub(0, 7) == 'weapon_' or name:sub(0, 5) == 'ammo_' then
         name = name:upper()
     end
 

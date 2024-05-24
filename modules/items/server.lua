@@ -28,7 +28,7 @@ local function getItem(_, name)
 
     name = name:lower()
 
-    if name:sub(0, 7) == 'weapon_' then
+    if name:sub(0, 7) == 'weapon_' or name:sub(0, 5) == 'ammo_' then
         name = name:upper()
     end
 
@@ -276,10 +276,8 @@ function Items.Metadata(inv, item, metadata, count)
 
 	if item.weapon then
 		if type(metadata) ~= 'table' then metadata = {} end
-
 		--- RDR3 Weapons are using degradation system
-		
-		-- print(" INV :: ", json.encode(item, {indent=true}))
+
 		if IS_GTAV then
 			if not metadata.durability then metadata.durability = 100 end
 		end
