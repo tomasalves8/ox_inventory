@@ -277,6 +277,25 @@ function Items.Metadata(inv, item, metadata, count)
 	if item.weapon then
 		if type(metadata) ~= 'table' then metadata = {} end
 		--- RDR3 Weapons are using degradation system
+		if IS_RDR3 then
+			local degradation = metadata.degradation
+
+			if degradation == nil or degradation < 0 then
+				metadata.degradation = 0
+			end
+
+			if not metadata.soot then
+				metadata.soot = 0
+			end
+
+			if not metadata.dirt then
+				metadata.dirt = 0
+			end
+
+			if not metadata.damage then
+				metadata.damage = 0
+			end
+		end
 
 		if IS_GTAV then
 			if not metadata.durability then metadata.durability = 100 end

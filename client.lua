@@ -594,7 +594,16 @@ local function useSlot(slot, noAnim)
 
 		elseif currentWeapon then
 			if data.ammo then
-				if EnableWeaponWheel or currentWeapon.metadata.durability <= 0 or (currentWeapon.metadata.degradation and currentWeapon.metadata.degradation >= 1.0) then
+				local weaponDurability 
+
+				if IS_GTAV then
+					weaponDurability = currentWeapon?.metadata?.durability <= 0
+				end
+				if IS_RDR3 then
+					weaponDurability = currentWeapon.metadata.degradation and currentWeapon.metadata.degradation >= 1.0
+				end
+
+				if EnableWeaponWheel or weaponDurability then
 					return
 				end
 
@@ -932,7 +941,16 @@ local function registerCommands()
 		if not currentWeapon or not canUseItem(true) then return end
 
 		if currentWeapon.ammo then
-			if currentWeapon?.metadata?.durability > 0 then
+			local weaponDurability 
+
+			if IS_GTAV then
+				weaponDurability = currentWeapon?.metadata?.durability > 0
+			end
+			if IS_RDR3 then
+				weaponDurability = currentWeapon?.metadata?.degradation < 1
+			end
+
+			if weaponDurability then
 				local slotId = Inventory.GetSlotIdWithItem(currentWeapon.ammo, IS_RDR3 and { } or  { type = currentWeapon.metadata.specialAmmo }, false)
 				if slotId then
 					useSlot(slotId)
@@ -2066,7 +2084,7 @@ RegisterNUICallback('swapItems', function(data, cb)
 		end
 
 		if shared.persistent_items then
-			data.coords = exports["persistent-items"]:getFromCoordsFromPlayer(coords)
+			data.coords = cAPI.GetFromCoordsFromPlayer(coords)
 		end
     end
 

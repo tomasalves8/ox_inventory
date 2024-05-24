@@ -1273,7 +1273,6 @@ function Inventory.GetItemSlots(inv, item, metadata)
 	for k, v in pairs(inv.items) do
 		emptySlots -= 1
 
-		print(" v : ", v.name, item.name)
 		if v.name == item.name then
 			if metadata and v.metadata == nil then
 				v.metadata = {}
@@ -2539,7 +2538,7 @@ local function updateWeapon(source, action, value, slot, specialAmmo)
 				local specialAmmoMeta = specialAmmo
 
 				if IS_RDR3 then
-					ammo = specialAmmo
+					ammo = specialAmmo or ammo
 					specialAmmoMeta = nil
 				end
 
@@ -2579,7 +2578,7 @@ local function updateWeapon(source, action, value, slot, specialAmmo)
 			elseif action == 'melee' and value > 0 then
 				weapon.metadata.durability = weapon.metadata.durability - ((Items(weapon.name).durability or 1) * value)
 			end
-
+			
             if (weapon.metadata.durability or 0) < 0 then
                 weapon.metadata.durability = 0
             end

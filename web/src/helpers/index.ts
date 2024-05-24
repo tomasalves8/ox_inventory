@@ -115,6 +115,8 @@ export const itemDegradation = (metadata: any, curTime: number) => {
 
   let degradation = (metadata.degradation * 100);
 
+  degradation = -(degradation) + 100;
+
   if (degradation > 100 && metadata.degrade)
     degradation = ((metadata.degradation - curTime) / (60 * metadata.degrade)) * 100;
 

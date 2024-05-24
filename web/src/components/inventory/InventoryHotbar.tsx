@@ -73,8 +73,12 @@ const InventoryHotbar: React.FC = () => {
                         : <span>{item.count > 1 ? item.name == "money" ? `${(item.count / 100).toFixed(2)}` : item.count.toLocaleString('en-us') : ''}</span>
                       }
                   </div>
+
+                  { item?.name?.toLocaleLowerCase().search("weapon") != -1 && item?.name?.toLocaleLowerCase().search("weapon") != undefined  
+                    ? item?.degradation !== undefined && <WeightBar percent={item.degradation} durability />
+                    : item?.durability !== undefined && <WeightBar percent={item.durability} durability />
+                  }
                   
-                  {item?.durability !== undefined && <WeightBar percent={item.durability} durability />}
                   <div className="inventory-slot-label-box">
                     <div className="inventory-slot-label-text">
                       {item.metadata?.label ? item.metadata.label : Items[item.name]?.label || item.name}
