@@ -1,8 +1,11 @@
+local Proxy = module("frp_lib", "lib/Proxy")
 local Tunnel = module("frp_lib", "lib/Tunnel")
 
 local Inventory = require 'modules.inventory.client'
 local Weapon = require 'modules.weapon.client'
 
+
+cAPI = Proxy.getInterface("API")
 Tunnel.bindInterface("inventory", Inventory)
 
 RegisterNetEvent('FRP:onCharacterLogout', client.onLogout)
