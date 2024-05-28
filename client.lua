@@ -609,6 +609,11 @@ local function useSlot(slot, noAnim)
 
 				local clipSize = GetMaxAmmoInClip(playerPed, currentWeapon.hash, true)
 				local currentAmmo = GetAmmoInPedWeapon(playerPed, currentWeapon.hash)
+
+				if IS_RDR3 then
+					currentAmmo = GetPedAmmoByType(playerPed, currentWeapon.metadata.specialAmmo or currentWeapon.ammo)
+				end
+
 				local _, maxAmmo = GetMaxAmmo(playerPed, currentWeapon.hash)
 
 				local isDualWeaponActived = GetAllowDualWield(playerPed) == 1
@@ -641,53 +646,58 @@ local function useSlot(slot, noAnim)
 					end
 				end
 
-				if currentAmmo == clipSize then return end
+				if currentAmmo >= clipSize then return end
 
 				useItem(data, function(resp)
-					local isSameName = resp.name == currentWeapon?.ammo
+					local isSameName = resp.name:lower() == currentWeapon?.ammo:lower()
+
+					if currentAmmo >= clipSize and not isDualWeaponActived then return end
 					
-					if IS_RDR3 and string.find(resp.name, currentWeapon?.ammo) then
+					if IS_RDR3 and string.find(resp.name:lower(), currentWeapon?.ammo:lower()) then
 						isSameName = true
 					end
 
 					if not resp or not isSameName then return end
+					currentAmmo = GetPedAmmoByType(playerPed, resp.name:lower())
 
-					if currentWeapon.metadata.specialAmmo ~= resp.metadata.type and type(currentWeapon.metadata.specialAmmo) == 'string' then
-						local clipComponentKey = ('%s_CLIP'):format(Items[currentWeapon.name].model:gsub('WEAPON_', 'COMPONENT_'))
-						local specialClip = ('%s_%s'):format(clipComponentKey, (resp.metadata.type or currentWeapon.metadata.specialAmmo):upper())
+					if IS_GTAV then
+						if currentWeapon.metadata.specialAmmo ~= resp.metadata.type and type(currentWeapon.metadata.specialAmmo) == 'string' then
+							local clipComponentKey = ('%s_CLIP'):format(Items[currentWeapon.name].model:gsub('WEAPON_', 'COMPONENT_'))
+							local specialClip = ('%s_%s'):format(clipComponentKey, (resp.metadata.type or currentWeapon.metadata.specialAmmo):upper())
 
-						if type(resp.metadata.type) == 'string' then
-							if not HasPedGotWeaponComponent(playerPed, currentWeapon.hash, specialClip) then
-								if not DoesWeaponTakeWeaponComponent(currentWeapon.hash, specialClip) then
-									warn('cannot use clip with this weapon')
-									return
+							if type(resp.metadata.type) == 'string' then
+								if not HasPedGotWeaponComponent(playerPed, currentWeapon.hash, specialClip) then
+									if not DoesWeaponTakeWeaponComponent(currentWeapon.hash, specialClip) then
+										warn('cannot use clip with this weapon')
+										return
+									end
+
+									local defaultClip = ('%s_01'):format(clipComponentKey)
+
+									if not HasPedGotWeaponComponent(playerPed, currentWeapon.hash, defaultClip) then
+										warn('cannot use clip with currently equipped clip')
+										return
+									end
+
+									if currentAmmo > 0 then
+										warn('cannot mix special ammo with base ammo')
+										return
+									end
+
+									currentWeapon.metadata.specialAmmo = resp.metadata.type
+
+									GiveWeaponComponentToPed(playerPed, currentWeapon.hash, specialClip)
 								end
-
-								local defaultClip = ('%s_01'):format(clipComponentKey)
-
-								if not HasPedGotWeaponComponent(playerPed, currentWeapon.hash, defaultClip) then
-									warn('cannot use clip with currently equipped clip')
-									return
-								end
-
+							elseif HasPedGotWeaponComponent(playerPed, currentWeapon.hash, specialClip) then
 								if currentAmmo > 0 then
 									warn('cannot mix special ammo with base ammo')
 									return
 								end
 
-								currentWeapon.metadata.specialAmmo = resp.metadata.type
+								currentWeapon.metadata.specialAmmo = nil
 
-								GiveWeaponComponentToPed(playerPed, currentWeapon.hash, specialClip)
+								RemoveWeaponComponentFromPed(playerPed, currentWeapon.hash, specialClip)
 							end
-						elseif HasPedGotWeaponComponent(playerPed, currentWeapon.hash, specialClip) then
-							if currentAmmo > 0 then
-								warn('cannot mix special ammo with base ammo')
-								return
-							end
-
-							currentWeapon.metadata.specialAmmo = nil
-
-							RemoveWeaponComponentFromPed(playerPed, currentWeapon.hash, specialClip)
 						end
 					end
 
@@ -699,7 +709,6 @@ local function useSlot(slot, noAnim)
 						clipSize = clipSize * 2
 					end
 
-					currentAmmo = GetAmmoInPedWeapon(playerPed, currentWeapon.hash)
 					local missingAmmo = clipSize - currentAmmo
 					local addAmmo = resp.count > missingAmmo and missingAmmo or resp.count
 					local newAmmo = currentAmmo + addAmmo

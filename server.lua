@@ -347,9 +347,18 @@ lib.callback.register('ox_inventory:useItem', function(source, itemName, slot, m
 				if inventory.weapon then
 					local weapon = inventory.items[inventory.weapon]
 
-					if weapon and weapon?.metadata.durability > 0 then
-						consume = nil
+					if IS_GTAV then
+						if weapon and weapon?.metadata.durability > 0 then
+							consume = nil
+						end
 					end
+
+					if IS_RDR3 then
+						if weapon and weapon?.metadata.degradation < 1.0 then
+							consume = nil
+						end
+					end
+	
 				else return false end
 			elseif item.component or item.tint then
 				consume = 1
