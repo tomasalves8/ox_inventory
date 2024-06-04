@@ -1598,7 +1598,7 @@ local function dropItem(source, playerInventory, fromData, data)
 		if isWeapon then
 			prop = toData.name
 		end
-		exports["persistent-items"]:MakeItemsToDrop(itemLabel, toData.name, toData.count, toData.metadata, prop:lower(), data.coords, source)
+		exports["persistent-items"]:MakeItemsToDrop(itemLabel, toData.name, toData.count, toData.metadata, prop:lower(), data.coords, source, GetPlayerRoutingBucket(source))
 	else
 		dropId = generateInvId('drop')
 		local inventory = Inventory.Create(dropId, ('Drop %s'):format(dropId:gsub('%D', '')), 'drop', shared.playerslots, toData.weight, shared.playerweight, false, {[data.toSlot] = toData})
