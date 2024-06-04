@@ -521,7 +521,7 @@ if IS_RDR3 then
 	
 	AddEventHandler("ox_inventory:ReplaceCurrentAttachPoint", function(itemSlot)
 	
-		local weapon = lib.callback.await('nxt_inventory:getItemBySlot', nil, itemSlot)
+		local weapon = lib.callback.await('ox_inventory:getItemBySlot', nil, itemSlot)
 	
 		local attachPoint = 0
 	
