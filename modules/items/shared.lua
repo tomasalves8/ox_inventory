@@ -145,13 +145,44 @@ for type, data in pairs(lib.load(string.format('data.weapons_%s', IS_GTAV and "G
 	end
 end
 
-for k, v in pairs(lib.load(string.format('data.items_%s', IS_GTAV and "GTAV" or "RDR3"))) do
-	v.name = k
-	local success, response = pcall(newItem, v)
 
-    if not success then
-        warn(('An error occurred while creating item "%s" callback!\n^1SCRIPT ERROR: %s^0'):format(k, response))
-    end
+local itemsListByType =
+{
+	'drugs',
+	'fishing',
+	'foods',
+	'general',
+	'herbs',
+	'meats',
+	'naturals',
+	'provisions',
+	'tonics',
+	'tools',
+	'valuables'
+}
+
+if IS_GTAV then
+	for k, v in pairs(lib.load( "data.items_GTAV" )) do
+		v.name = k
+		local success, response = pcall(newItem, v)
+	
+		if not success then
+			warn(('An error occurred while creating item "%s" callback!\n^1SCRIPT ERROR: %s^0'):format(k, response))
+		end
+	end
+end
+
+if IS_RDR3 then
+	for _, type in pairs(itemsListByType) do
+		for k, v  in pairs( lib.load( ("data.items.%s"):format(type)) ) do
+			v.name = k
+			local success, response = pcall(newItem, v)
+		
+			if not success then
+				warn(('An error occurred while creating item "%s" callback!\n^1SCRIPT ERROR: %s^0'):format(k, response))
+			end
+		end
+	end
 end
 
 ItemList.cash = ItemList.money

@@ -48,4 +48,5 @@ files {
     'modules/**/client.lua',
     'modules/bridge/**/client.lua',
     'data/*.lua',
+    'data/items/*.lua',
 }
