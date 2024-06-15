@@ -226,6 +226,10 @@ lib.callback.register('ox_inventory:openInventory', function(source, invType, da
 	return openInventory(source, invType, data)
 end)
 
+lib.callback.register('ox_inventory:getItemBySlot', function(source, slot)
+	return Inventory.GetSlot(source, slot)
+end)
+
 ---@param netId number
 lib.callback.register('ox_inventory:isVehicleATrailer', function(source, netId)
 	local entity = NetworkGetEntityFromNetworkId(netId)

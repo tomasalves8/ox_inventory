@@ -33,6 +33,7 @@ local invOpen = false
 local plyState = LocalPlayer.state
 local IsPedCuffed = IsPedCuffed
 local playerPed = cache.ped
+local currentInteractedEntityId
 
 lib.onCache('ped', function(ped)
 	playerPed = ped
@@ -850,21 +851,28 @@ local function registerCommands()
 	RegisterCommand('steal', openNearbyInventory, false)
 
 	local function openGlovebox(vehicle)
-		if not IsPedInAnyVehicle(playerPed, false) or not NetworkGetEntityIsNetworked(vehicle) then return end
+
+		if IS_GTAV then
+			if not IsPedInAnyVehicle(playerPed, false) then return end
+		end
+
+		if not NetworkGetEntityIsNetworked(vehicle) then return end
 
 		local vehicleHash = GetEntityModel(vehicle)
 		local vehicleClass
-		local checkVehicle = Vehicles.Storage[vehicleHash]
+		local checkVehicle
 
 		local gloveId
 
 		if IS_GTAV then
+			checkVehicle = Vehicles.Storage[vehicleHash]
 			vehicleClass = GetVehicleClass(vehicle)
 			gloveId = ('glove%d' --[[ é junto assim mesmo... não tá errado ]]):format(GetVehicleNumberPlateText(vehicle))
 		end
 
 		if IS_RDR3 then
-			local horseUUID = Entity(vehicle).state.horseUUID
+			checkVehicle = Vehicles.glovebox.models[vehicleHash]
+			local horseUUID = Entity(vehicle).state['transport:id']
 
 			if not horseUUID then
 				--[[ O cavalo não faz parte do nosso sistema. ]]
@@ -876,6 +884,9 @@ local function registerCommands()
 
 		-- No storage or no glovebox
 		if (checkVehicle == 0 or checkVehicle == 2) or (not Vehicles.glovebox[vehicleClass] and not Vehicles.glovebox.models[vehicleHash]) then return end
+
+		local maxWeight = checkVehicle
+		local slots = 4
 
 		local isOpen = client.openInventory('glovebox', { id = gloveId, netid = NetworkGetNetworkIdFromEntity(vehicle) })
 
@@ -889,8 +900,8 @@ local function registerCommands()
 			return client.closeInventory()
 		end
 
-		if cache.vehicle then
-			return openGlovebox(cache.vehicle)
+		if cache.vehicle or currentInteractedEntityId then
+			return openGlovebox( cache.vehicle or currentInteractedEntityId )
 		end
 
 		local closest = lib.points.getClosestPoint()
@@ -925,8 +936,8 @@ local function registerCommands()
 			return client.openInventory('stash', StashTarget)
 		end
 
-		if cache.vehicle then
-			return openGlovebox(cache.vehicle)
+		if cache.vehicle or currentInteractedEntityId then
+			return openGlovebox( cache.vehicle or currentInteractedEntityId )
 		end
 
 		local entity, entityType = Utils.Raycast(2|16)
@@ -2199,4 +2210,8 @@ lib.callback.register('ox_inventory:getVehicleData', function(netid)
 	if entity then
 		return GetEntityModel(entity), IS_GTAV and GetVehicleClass(entity) or 'wagon'
 	end
+end)
+
+AddEventHandler('gameevent:PlayerTargetEntity', function(interactedEntityId)
+    currentInteractedEntityId = interactedEntityId
 end)

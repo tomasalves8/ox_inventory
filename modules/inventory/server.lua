@@ -111,7 +111,11 @@ local function loadInventoryData(data, player)
 	end
 
 	if data.type == 'trunk' or data.type == 'glovebox' then
-		local plate = data.id:sub(6)
+		local plate = data.id
+
+		if IS_GTA then
+			plate = data.id:sub(6)
+		end
 
 		if server.trimplate then
 			plate = string.strtrim(plate)
@@ -854,7 +858,17 @@ function Inventory.GetItem(inv, item, metadata, returnsCount)
 			end
 		end
 
-		if returnsCount then return count else
+		
+		local isCurrency = item?.name == 'money'
+
+		if isCurrency then
+			--[[ Converter para float. 100 -> 1.00 ]]
+			count = count / 100
+		end
+
+		if returnsCount then
+			return count
+		else
 			item.count = count
 			return item
 		end
@@ -1104,7 +1118,20 @@ function Inventory.AddItem(inv, item, count, metadata, slot, cb)
 
 	local toSlot, slotMetadata, slotCount
 	local success, response = false
+
+	local isCurrency = item?.name == 'money'
+
+	if isCurrency then
+		if math.type(count) ~= 'float' then
+			error( ('Tentativa de adicionar o item(%s) do tipo \'currency\' com a quantidade sem ser um float'):format(item.name) )
+		end
+
+		count = count * 100
+	end
+
 	count = math.floor(count + 0.5)
+
+
 	metadata = assertMetadata(metadata)
 
 	if slot then
@@ -1300,6 +1327,16 @@ function Inventory.RemoveItem(inv, item, count, metadata, slot, ignoreTotal)
 	if type(item) ~= 'table' then item = Items(item) end
 
 	if not item then return false, 'invalid_item' end
+
+	local isCurrency = item?.name == 'money'
+
+	if isCurrency then
+		if math.type(count) ~= 'float' then
+			error( ('Tentativa de remove o item(%s) do tipo \'currency\' com a quantidade sem ser um float'):format(item) )
+		end
+
+		count = count * 100
+	end
 
 	count = math.floor(count + 0.5)
 

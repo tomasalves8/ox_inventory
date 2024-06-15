@@ -519,8 +519,7 @@ if IS_RDR3 then
 		-- Citizen.InvokeNative(PlayerPedId(), true);
 	end)
 	
-	AddEventHandler("ox_inventory:ReplaceCurrentAttachPoint", function(itemSlot)
-	
+	AddEventHandler("ox_inventory:ReplaceCurrentAttachPoint", function(itemSlot)	
 		local weapon = lib.callback.await('ox_inventory:getItemBySlot', nil, itemSlot)
 	
 		local attachPoint = 0
@@ -529,7 +528,7 @@ if IS_RDR3 then
 			attachPoint = 12
 		end
 
-		local weaponHash = GetHashKey(weapon)
+		local weaponHash = GetHashKey(weapon.name)
 	
 		Citizen.InvokeNative(0xADF692B254977C0C, PlayerPedId(), weaponHash, true, attachPoint)
 	
