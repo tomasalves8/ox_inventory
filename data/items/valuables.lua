@@ -2,7 +2,8 @@ return {
 	["money"] = {
 		type = 'Generic',  
 		label = "Dólar",                                            
-		description = "Uma nota de valor, pode ser usada para comprar diversos itens. É a moeda da economia." 
+		description = "Uma nota de valor, pode ser usada para comprar diversos itens. É a moeda da economia.",
+		prop = "p_moneystack01x",
 	},	
 	
 	["capitale"] = {
