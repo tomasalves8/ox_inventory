@@ -1631,7 +1631,7 @@ local function dropItem(source, playerInventory, fromData, data)
 	local itemLabel = itemData.label
 
 	if shared.persistent_items then
-        local isWeapon = string.find(toData.name:lower(), "weapon_") or string.find(toData.name:lower(), "ammo_")
+        local isWeapon = string.find(toData.name:lower(), "weapon_") -- or string.find(toData.name:lower(), "ammo_")
 		if isWeapon then
 			prop = toData.name
 		end
