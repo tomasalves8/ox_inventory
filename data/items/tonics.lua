@@ -48,7 +48,7 @@ return {
 		degrade = 900000,
 		["weight"] = 500,
 		consume = 0,
-		server = { export = 'nxt_inventory.itemTonic' },
+		server = { export = 'frp_death_state.itemTonic' },
 	},
     ['tonic_potent_miracle'] = {
 		type = 'Generic',
@@ -57,7 +57,7 @@ return {
 		degrade = 900000,
 		["weight"] = 700,
 		consume = 0,
-		server = { export = 'nxt_inventory.itemTonic' },
+		server = { export = 'frp_death_state.itemTonic' },
 	},
 
 	['tonic_horse_care'] = {
@@ -73,8 +73,8 @@ return {
 		weight = 150,
 		description = "Revive cavalo de grave lesão e restaura a saúde",
 		consume = 1,
-		client = { export = 'nxt_inventory.reviverItem' },
-		server = { export = 'nxt_inventory.reviverItem' },
+		client = { export = 'frp_death_state.reviverItem' },
+		server = { export = 'frp_death_state.reviverItem' },
 	},
 
     ['tonic_horse_stimulant'] = {
@@ -114,8 +114,8 @@ return {
 		["description"] = "Revive pessoas gravemente feridas",
 		["weight"] = 500,
 		consume = 1,
-		client = { export = 'nxt_inventory.reviverItem' },
-		server = { export = 'nxt_inventory.reviverItem' },
+		client = { export = 'frp_death_state.reviverItem' },
+		server = { export = 'frp_death_state.reviverItem' },
 	},
 
 	["medicine"] =
@@ -126,7 +126,7 @@ return {
 		["weight"] = 700,
 		degrade = 15000,
 		consume = 1,
-		client = { export = 'nxt_inventory.itemMedicine' },
-		server = { export = 'nxt_inventory.itemMedicine' },
+		client = { export = 'frp_death_state.itemMedicine' },
+		server = { export = 'frp_death_state.itemMedicine' },
 	},
 }
