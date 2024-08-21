@@ -1939,7 +1939,9 @@ local function giveItemToTarget(serverId, slotId, count)
         currentWeapon = Weapon.Disarm(currentWeapon)
     end
 
-    Utils.PlayAnim(0, 'mp_common', 'givetake1_a', 1.0, 1.0, 2000, 50, 0.0, 0, 0, 0)
+	if IS_GTAV then
+    	Utils.PlayAnim(0, 'mp_common', 'givetake1_a', 1.0, 1.0, 2000, 50, 0.0, 0, 0, 0)
+	end
     TriggerServerEvent('ox_inventory:giveItem', slotId, serverId, count or 0)
 end
 
