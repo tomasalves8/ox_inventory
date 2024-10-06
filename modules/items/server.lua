@@ -214,6 +214,72 @@ CreateThread(function()
 		end
 
 		Wait(500)
+	elseif shared.framework == 'vorp' then
+		local success, items = pcall(MySQL.query.await, 'SELECT * FROM items')
+	
+		if success and items and next(items) then
+			local dump = {}
+			local count = 0
+	
+			for i = 1, #items do
+				local item = items[i]
+				if not ItemList[item.item] then
+					item.close = item.closeonuse == nil and true or item.closeonuse
+					item.stack = item.stackable == nil and true or item.stackable
+					item.description = item.description
+					item.weight = item.weight or 0
+					item.name = item.item
+					item.item = nil
+					dump[i] = item
+					count += 1
+				end
+			end
+	
+			local itemFile = "data/items_GTAV.lua"
+			if IS_RDR3 then
+				itemFile = "data/items_RDR3.lua"
+			end
+			if table.type(dump) ~= "empty" then
+				local file = {string.strtrim(LoadResourceFile(shared.resource, itemFile))}
+				file[1] = file[1]:gsub('}$', '')
+	
+				---@todo separate into functions for reusability, properly handle nil values
+				local itemFormat = [[
+	
+		[%q] = {
+			label = %q,
+			weight = %s,
+			stack = %s,
+			close = %s,
+			description = %q
+		},
+	]]
+				local fileSize = #file
+
+				for _, item in pairs(dump) do
+					print(item.name)
+					if not ItemList[item.name] then
+						fileSize += 1
+
+						local itemStr = itemFormat:format(item.name, item.label, item.weight, item.stack, item.close, item.description and json.encode(item.description) or 'nil')
+						-- temporary solution for nil values
+						itemStr = itemStr:gsub('[%s]-[%w]+ = "?nil"?,?', '')
+						file[fileSize] = itemStr
+						ItemList[item.name] = item
+					end
+				end
+
+				file[fileSize+1] = '}'
+
+				SaveResourceFile(shared.resource, itemFile, table.concat(file), -1)
+				shared.info(count, 'items have been copied from the database.')
+				shared.info('You should restart the resource to load the new items.')
+			end
+
+			shared.info('Database contains', #items, 'items.')
+		end
+
+		Wait(500)
 	end
 
 	local count = 0
@@ -247,6 +313,8 @@ local function GenerateSerial(text)
 end
 
 local function setItemDurability(item, metadata)
+	-- print stack trace
+	print(debug.traceback())
 	local degrade = item.degrade
 
 	if degrade then
@@ -338,6 +406,8 @@ function Items.Metadata(inv, item, metadata, count)
 		end
 
 		if not metadata.durability then
+			print(item.name)
+			--print(json.encode(item))
 			metadata = setItemDurability(ItemList[item.name], metadata)
 		end
 	end
